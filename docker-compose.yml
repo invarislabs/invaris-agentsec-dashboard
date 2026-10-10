@@ -1,0 +1,32 @@
+# Local development: Postgres plus the dashboard with development sign-in enabled.
+#   docker compose up --build    then open http://localhost:8000
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: agentsec
+      POSTGRES_PASSWORD: agentsec
+      POSTGRES_DB: dashboard
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentsec -d dashboard"]
+      interval: 2s
+      retries: 30
+  web:
+    build:
+      context: .
+      args:
+        AGENTSEC_REQUIREMENT: ${AGENTSEC_REQUIREMENT:-invaris-agentsec @ git+https://github.com/invarislabs/invaris-agentsec.git@main}
+    environment:
+      AGENTSEC_ENV: development
+      AGENTSEC_DEV_LOGIN: "1"
+      DATABASE_URL: postgresql+psycopg://agentsec:agentsec@db:5432/dashboard
+      PUBLIC_URL: http://localhost:8000
+      SECRET_KEY: local-development-only-secret-key-change-me
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+    ports: ["8000:8000"]
+    depends_on:
+      db: {condition: service_healthy}
+volumes:
+  pgdata:
