@@ -1,0 +1,7 @@
+Copyright (c) 2026 Invaris Labs. All rights reserved.
+
+This repository is proprietary and confidential. No license is granted to use, copy, modify or
+distribute it, in whole or in part, without prior written permission from Invaris Labs.
+
+Bundled third-party fonts (app/static/fonts) are IBM Plex Sans and IBM Plex Mono, licensed under the
+SIL Open Font License 1.1; see app/static/fonts/OFL.txt.
