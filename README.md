@@ -4,12 +4,16 @@ The hosted dashboard for [Invaris AgentSec](https://github.com/invarislabs/invar
 the `report.json` files AgentSec writes from CI or their machines, and get every run of every agent in one place:
 findings with their evidence, full traces, history across runs, and what changed between any two runs.
 
-**Pricing model.** Free at launch. Every account is on the Free plan, whose limits live in one place
-(`app/plans.py`, tuned with environment variables). Premium features will be added later as paid plans; nothing
-in the code hard-codes a limit outside that module, so a paid plan is a new entry there plus billing.
+This repository is public and open source under the [Apache License 2.0](LICENSE), like the AgentSec engine.
+The engine, its CLI, the local `agentsec dashboard` and `agentsec upload` live in
+[`invarislabs/invaris-agentsec`](https://github.com/invarislabs/invaris-agentsec); this repository is the hosted
+service those reports are uploaded to. You can run it yourself, read exactly what it does with your reports, and
+contribute to it.
 
-This repository is private and proprietary (see [LICENSE](LICENSE)). The open-source engine, its CLI, the local
-`agentsec dashboard` and `agentsec upload` live in `invarislabs/invaris-agentsec` under Apache-2.0.
+**Pricing.** The hosted dashboard is free at launch, and everything in this repository is free and open source.
+A few premium features will be added later; those will be paid and kept private, outside this repository. Every
+plan limit lives in one place (`app/plans.py`, tuned with environment variables), so a paid plan is a new entry
+there plus billing, and the open-source app keeps working without it.
 
 ## What it does
 
@@ -134,6 +138,19 @@ poisoned demo MCP server. One test runs the real `agentsec upload` client over H
 
 ## Not built yet
 
-Team members and roles, billing and paid plans, organization accounts, rate limiting on the upload endpoint,
-object storage for very large reports (they are stored compressed in Postgres today), email notifications, and
-production trace monitoring.
+Team members and roles, organization accounts, rate limiting on the upload endpoint, object storage for very large
+reports (they are stored compressed in Postgres today), and email notifications. Billing, paid plans and the
+premium features planned for later (for example production trace monitoring) will be private and are not part of
+this repository.
+
+## Contributing
+
+Issues and pull requests are welcome. Run the tests (above) before opening a pull request. Report security
+problems privately as described in the engine's
+[SECURITY.md](https://github.com/invarislabs/invaris-agentsec/blob/main/SECURITY.md), not in a public issue.
+
+## License
+
+Apache License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). "Invaris" and "AgentSec" are trademarks of
+Invaris Labs and are not covered by the license. The bundled IBM Plex fonts are under the SIL Open Font License
+1.1 (`app/static/fonts/OFL.txt`).

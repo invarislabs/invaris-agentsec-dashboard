@@ -9,7 +9,7 @@ ARG AGENTSEC_REQUIREMENT="invaris-agentsec @ git+https://github.com/invarislabs/
 RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/* \
  && pip install "$AGENTSEC_REQUIREMENT"
 
-COPY pyproject.toml ./
+COPY pyproject.toml LICENSE NOTICE ./
 COPY app ./app
 COPY migrations ./migrations
 COPY alembic.ini ./
