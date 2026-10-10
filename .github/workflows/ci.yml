@@ -1,0 +1,33 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: agentsec
+          POSTGRES_PASSWORD: agentsec
+          POSTGRES_DB: dashboard_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agentsec" --health-interval 2s --health-retries 30
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://agentsec:agentsec@localhost:5432/dashboard_test
+      # agentsec.dashboard is only on invaris-agentsec's add-dashboard branch for now.
+      # Switch this back to @main once that branch is merged (or pin a release that includes it).
+      AGENTSEC_REQUIREMENT: invaris-agentsec @ git+https://github.com/invarislabs/invaris-agentsec.git@add-dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "$AGENTSEC_REQUIREMENT" && pip install -e ".[dev]"
+      - run: pytest
+      - run: TEST_DATABASE_URL= pytest   # SQLite too, as used for quick local runs

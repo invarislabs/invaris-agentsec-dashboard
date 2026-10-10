@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "invaris-agentsec-dashboard"
+version = "0.1.0"
+description = "Hosted dashboard for Invaris AgentSec reports."
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{name = "Invaris Labs"}]
+dependencies = [
+    # The report logic (summaries, insights, comparison) comes from AgentSec itself. agentsec.dashboard
+    # first ships in the release after 0.7.0; until then install AgentSec from a checkout (see README).
+    "invaris-agentsec>=0.7.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.2",
+    "httpx>=0.27",
+    "itsdangerous>=2.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/invarislabs/invaris-agentsec-dashboard"
+Issues = "https://github.com/invarislabs/invaris-agentsec-dashboard/issues"
+Engine = "https://github.com/invarislabs/invaris-agentsec"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+app = ["static/*.html", "static/*.js", "static/*.css", "static/*.svg", "static/fonts/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]   # tests import shared helpers from tests/conftest.py
