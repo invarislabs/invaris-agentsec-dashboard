@@ -7,7 +7,8 @@ name = "invaris-agentsec-dashboard"
 version = "0.1.0"
 description = "Hosted dashboard for Invaris AgentSec reports."
 requires-python = ">=3.11"
-license = "LicenseRef-Proprietary"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [{name = "Invaris Labs"}]
 dependencies = [
     # The report logic (summaries, insights, comparison) comes from AgentSec itself. agentsec.dashboard
@@ -22,6 +23,11 @@ dependencies = [
     "itsdangerous>=2.2",
 ]
 
+[project.urls]
+Homepage = "https://github.com/invarislabs/invaris-agentsec-dashboard"
+Issues = "https://github.com/invarislabs/invaris-agentsec-dashboard/issues"
+Engine = "https://github.com/invarislabs/invaris-agentsec"
+
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 
@@ -33,3 +39,4 @@ app = ["static/*.html", "static/*.js", "static/*.css", "static/*.svg", "static/f
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]   # tests import shared helpers from tests/conftest.py
