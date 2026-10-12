@@ -11,9 +11,9 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{name = "Invaris Labs"}]
 dependencies = [
-    # The report logic (summaries, insights, comparison) comes from AgentSec itself. agentsec.dashboard
-    # first ships in AgentSec 0.9.0; until it is published install AgentSec from a checkout (see README).
-    "invaris-agentsec>=0.7.0",
+    # The report logic (summaries, insights, verdicts, comparison) comes from AgentSec itself;
+    # agentsec.dashboard and agentsec.verdicts ship from 0.9.0.
+    "invaris-agentsec>=0.9.0",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "sqlalchemy>=2.0",

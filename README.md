@@ -89,10 +89,10 @@ dashboard requires the AgentSec release that ships it.
 ## Run it locally
 
 You need Python 3.11+, Postgres 14+ (or nothing, with SQLite for a quick look), and a checkout of
-`invaris-agentsec` that includes `agentsec.dashboard` (AgentSec 0.9.0 or later, or the branch that adds it).
+AgentSec 0.9.0 or later (`pip install` below installs it from PyPI), or a checkout of `invaris-agentsec`.
 
 ```bash
-pip install -e ../invaris-agentsec            # AgentSec with agentsec.dashboard
+pip install -e ../invaris-agentsec            # optional: a local AgentSec checkout instead of the PyPI release
 pip install -e ".[dev]"
 
 export AGENTSEC_ENV=development AGENTSEC_DEV_LOGIN=1
@@ -110,9 +110,8 @@ agentsec test --policy agentsec.yaml
 agentsec upload .agentsec/report.json --server http://localhost:8000
 ```
 
-Or with Docker: `docker compose up --build` (Postgres plus the app, development sign-in on). Until AgentSec 0.9.0 is
-published, the image installs AgentSec from the pinned `add-dashboard` commit that CI tests against; set
-`AGENTSEC_REQUIREMENT` to install another one, for example
+Or with Docker: `docker compose up --build` (Postgres plus the app, development sign-in on). The image installs
+AgentSec 0.9.0; set `AGENTSEC_REQUIREMENT` to install another build, for example
 `invaris-agentsec @ git+https://github.com/invarislabs/invaris-agentsec.git@<branch or commit>`.
 
 ## Deploy
