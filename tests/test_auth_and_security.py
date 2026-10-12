@@ -134,7 +134,7 @@ def test_page_never_inserts_report_text_as_markup():
 
 
 def test_database_urls_from_hosting_providers_are_accepted():
-    """Fly.io, Render, Railway and Heroku set DATABASE_URL to postgres:// or postgresql://."""
+    """Neon, Supabase, Render, Railway and Heroku give DATABASE_URL as postgres:// or postgresql://."""
     from app.config import database_url, engine_options
     want = "postgresql+psycopg://u:p@db.internal:5432/app?sslmode=require"
     assert database_url("postgres://u:p@db.internal:5432/app?sslmode=require") == want
@@ -143,7 +143,7 @@ def test_database_urls_from_hosting_providers_are_accepted():
     assert database_url("postgresql+asyncpg://x/y") == "postgresql+asyncpg://x/y"
     assert database_url("sqlite:///dash.db") == "sqlite:///dash.db"
     assert database_url("  ").startswith("postgresql+psycopg://")
-    # behind PgBouncer (Fly.io Managed Postgres) prepared statements must stay off
+    # behind PgBouncer (Neon's pooled endpoint) prepared statements must stay off
     assert engine_options(want)["connect_args"] == {"prepare_threshold": None}
     assert engine_options("sqlite:///x.db") == {"connect_args": {"check_same_thread": False}}
 

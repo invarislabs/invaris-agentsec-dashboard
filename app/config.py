@@ -18,8 +18,8 @@ DEFAULT_DATABASE_URL = "postgresql+psycopg://agentsec@localhost:5432/dashboard"
 
 
 def database_url(value: Optional[str] = None) -> str:
-    """DATABASE_URL for SQLAlchemy. Hosts such as Fly.io, Render, Railway and Heroku hand out `postgres://` or
-    `postgresql://` URLs; SQLAlchemy reads those as "use the default driver", so they become the psycopg 3 driver
+    """DATABASE_URL for SQLAlchemy. Hosted Postgres (Neon, Supabase, Render, Railway, Heroku) hands out `postgres://`
+    or `postgresql://` URLs; SQLAlchemy reads those as "use the default driver", so they become the psycopg 3 driver
     this app ships with. Explicit `postgresql+<driver>://` and SQLite URLs are left alone."""
     url = (value if value is not None else os.environ.get("DATABASE_URL", "")).strip() or DEFAULT_DATABASE_URL
     for prefix in ("postgres://", "postgresql://"):
@@ -28,14 +28,22 @@ def database_url(value: Optional[str] = None) -> str:
     return url
 
 
+def migration_database_url() -> str:
+    """The URL Alembic migrates through: DATABASE_DIRECT_URL when set, otherwise DATABASE_URL.
+
+    Neon (and other providers whose DATABASE_URL goes through PgBouncer in transaction mode) recommend running schema
+    migrations over a direct, non-pooled connection; the app itself keeps using the pooled DATABASE_URL."""
+    direct = os.environ.get("DATABASE_DIRECT_URL", "").strip()
+    return database_url(direct) if direct else database_url()
+
+
 def engine_options(url: str) -> dict:
     """create_engine() options for the app and for migrations."""
     if url.startswith("sqlite"):
         return {"connect_args": {"check_same_thread": False}}
     options: dict = {"pool_pre_ping": True}
     if url.startswith("postgresql+psycopg"):
-        # Managed Postgres is often behind PgBouncer in transaction mode (Fly.io Managed Postgres, Supabase, Neon
-        # pooled URLs). psycopg 3 prepares a statement after it runs five times, and prepared statements do not
+        # Managed Postgres is often behind PgBouncer in transaction mode (Neon and Supabase pooled URLs). psycopg 3 prepares a statement after it runs five times, and prepared statements do not
         # survive the pooler switching server connections, so turn automatic preparation off.
         options["connect_args"] = {"prepare_threshold": None}
     return options

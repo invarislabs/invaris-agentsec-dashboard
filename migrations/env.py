@@ -5,14 +5,15 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine
 
-from app.config import database_url, engine_options
+from app.config import engine_options, migration_database_url
 from app.models import Base
 
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-URL = database_url()      # same normalisation as the app (postgres:// from Fly.io, Render, ...)
+# DATABASE_DIRECT_URL (non-pooled) when set, else DATABASE_URL; postgres:// URLs are accepted, as in the app.
+URL = migration_database_url()
 
 
 def run_offline() -> None:
