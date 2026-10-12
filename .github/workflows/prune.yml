@@ -1,0 +1,37 @@
+# Daily retention clean-up: deletes runs older than each plan's retention (python -m app.maintenance prune).
+# Render's free plan has no cron jobs, so this runs on GitHub Actions, free for public repositories.
+# Needs one repository secret, PRUNE_DATABASE_URL (the Neon *direct* connection string); without it the job
+# skips itself. GitHub disables scheduled workflows after 60 days without repository activity; re-enable them
+# from the Actions tab if that happens.
+name: prune
+on:
+  schedule:
+    - cron: "17 3 * * *"        # 03:17 UTC daily
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: prune
+  cancel-in-progress: false
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.PRUNE_DATABASE_URL }}
+      # A command-line job, not the web app: the web-only production checks (OAuth app, SECRET_KEY) do not apply.
+      AGENTSEC_ENV: development
+    steps:
+      - name: Skip when PRUNE_DATABASE_URL is not configured
+        if: env.DATABASE_URL == ''
+        run: echo "PRUNE_DATABASE_URL is not set; nothing to prune."
+      - uses: actions/checkout@v4
+        if: env.DATABASE_URL != ''
+      - uses: actions/setup-python@v5
+        if: env.DATABASE_URL != ''
+        with:
+          python-version: "3.12"
+      - if: env.DATABASE_URL != ''
+        run: pip install .
+      - if: env.DATABASE_URL != ''
+        run: python -m app.maintenance prune

@@ -17,5 +17,5 @@ RUN pip install . && useradd --system --uid 10001 app
 USER app
 
 EXPOSE 8000
-# Apply migrations, then serve. Behind a TLS-terminating proxy (Fly, Render, Railway, a load balancer).
+# Apply migrations, then serve. Behind a TLS-terminating proxy (Render, a load balancer). $PORT is set by the host.
 CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
