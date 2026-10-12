@@ -7,16 +7,13 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from .config import get_settings
+from .config import engine_options, get_settings
 
 
 @lru_cache(maxsize=1)
 def get_engine() -> Engine:
     url = get_settings().database_url
-    kwargs = {"pool_pre_ping": True}
-    if url.startswith("sqlite"):
-        kwargs = {"connect_args": {"check_same_thread": False}}
-    engine = create_engine(url, **kwargs)
+    engine = create_engine(url, **engine_options(url))
     if url.startswith("sqlite"):
         # SQLite (tests, quick local runs) only enforces ON DELETE CASCADE when asked to.
         @event.listens_for(engine, "connect")

@@ -1,0 +1,35 @@
+# Fly.io deployment (https://fly.io/docs/reference/configuration/). Change `app` if the name is taken.
+# Secrets (never in this file): DATABASE_URL (set by `fly mpg attach`), SECRET_KEY, PUBLIC_URL,
+# GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET. See README "Deploy to Fly.io".
+app = "invaris-agentsec-dashboard"
+primary_region = "bom"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  AGENTSEC_ENV = "production"
+  PORT = "8000"
+
+[deploy]
+  # Migrations run once per deploy, before new machines start (the container's own `alembic upgrade head`
+  # is then a no-op), so two machines never race on a schema change.
+  release_command = "alembic upgrade head"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/healthz"
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "30s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

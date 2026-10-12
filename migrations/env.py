@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-import os
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine
 
+from app.config import database_url, engine_options
 from app.models import Base
 
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-URL = os.environ.get("DATABASE_URL", "postgresql+psycopg://agentsec@localhost:5432/dashboard")
+URL = database_url()      # same normalisation as the app (postgres:// from Fly.io, Render, ...)
 
 
 def run_offline() -> None:
@@ -22,7 +22,7 @@ def run_offline() -> None:
 
 
 def run_online() -> None:
-    engine = create_engine(URL)
+    engine = create_engine(URL, **engine_options(URL))
     with engine.connect() as connection:
         context.configure(connection=connection, target_metadata=Base.metadata)
         with context.begin_transaction():
