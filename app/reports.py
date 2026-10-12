@@ -12,11 +12,11 @@ from sqlalchemy.orm import Session
 
 try:
     from agentsec.dashboard.index import is_report, summarize_entry
-    from agentsec.dashboard.insights import compare_reports, insights
 except ImportError as exc:  # pragma: no cover - a deployment problem, not a runtime one
     raise ImportError("this dashboard needs an AgentSec build that includes agentsec.dashboard "
-                      "(the release after 0.7.0, or a checkout of invaris-agentsec); see README") from exc
+                      "(AgentSec 0.9.0 or later, or a checkout of invaris-agentsec); see README") from exc
 
+from .insights import compare_reports, inconclusive_count, insights
 from .models import ApiToken, Project, Report
 from .plans import LimitReached, Plan
 
@@ -83,7 +83,8 @@ def store_report(db: Session, project: Project, plan: Plan, report: Any, metadat
         policy_sha256=_str(meta.get("policy_sha256"), 64),
         scenarios=_int(meta.get("scenarios"), 0), passed=_int(meta.get("passed")),
         with_findings=_int(meta.get("with_findings")), errors=_int(meta.get("errors")),
-        not_observable=_int(meta.get("not_observable")), findings=_int(meta.get("findings"), 0),
+        not_observable=_int(meta.get("not_observable")),
+        inconclusive=_int(inconclusive_count(report), 0) if meta["kind"] == "test" else None, findings=_int(meta.get("findings"), 0),
         critical=_int(sev["critical"], 0), high=_int(sev["high"], 0), medium=_int(sev["medium"], 0),
         low=_int(sev["low"], 0),
         traces_stripped=stripped, size_bytes=size_bytes or len(raw), content=gzip.compress(raw), **extra)
@@ -116,7 +117,7 @@ def entry(r: Report) -> Dict[str, Any]:
         r.uploaded_at.isoformat(), "uploaded_at": r.uploaded_at.isoformat(), "version": r.agentsec_version,
         "seed": r.seed, "policy_path": r.policy_path, "policy_sha256": r.policy_sha256,
         "scenarios": r.scenarios, "passed": r.passed, "with_findings": r.with_findings, "errors": r.errors,
-        "not_observable": r.not_observable, "findings": r.findings,
+        "not_observable": r.not_observable, "inconclusive": r.inconclusive, "findings": r.findings,
         "by_severity": {"critical": r.critical, "high": r.high, "medium": r.medium, "low": r.low},
         "branch": r.branch, "commit": r.commit, "ci_url": r.ci_url, "repository": r.repository, "label": r.label,
         "traces_stripped": r.traces_stripped, "size_bytes": r.size_bytes,

@@ -34,7 +34,47 @@ there plus billing, and the open-source app keeps working without it.
   scans, and run comparison. These are the same views as the open-source `agentsec dashboard`, and the numbers come
   from AgentSec's own code (`agentsec.dashboard.insights`, `agentsec.compare`), so the hosted and local views and
   the CLI always agree.
-- **Download** any run's original `report.json` to replay it locally.
+- **Verdicts as AgentSec 0.8.0 defines them.** Every scenario is shown as passed, findings, error, not observable or
+  **inconclusive**. Inconclusive means the scenario's adversarial content never reached the agent (it did not open
+  the poisoned email or page, or stopped before a mid-task injection), so nothing was measured: it is never shown
+  or counted as passed, in the run list, the history chart, the overview verdict or the category grid, and a
+  finding whose scenario is inconclusive in the newer run is never counted as fixed.
+- **What a run measured.** Tested scenarios (attacked and judged), findings among them, passed, inconclusive, errors
+  and not observable, with the rates computed over tested scenarios only.
+- **Attack goals and timelines** (email, browser and other attack packs that declare `attack_goals`). For each
+  `attack_goal_achieved` finding: which tool result delivered the payload (and how many earlier results carried
+  none, which shows a mid-task injection), and which later tool call achieved the attacker's goal. The trace marks
+  both events. Categories that came from an attack pack are labelled.
+- **Baseline vs hardened.** Comparing two runs also shows what each run measured and every scenario whose verdict
+  changed (findings to passed, passed to findings, tested to inconclusive), so hardening that merely stopped the
+  agent from reading the poisoned content is not mistaken for a fix.
+- **Download** any run's original `report.json` to replay it locally. `agentsec replay` reports each finding as
+  reproduced, not reproduced, inconclusive (exit code 2 when nothing reproduced but something was inconclusive) or
+  error.
+
+The dashboard shows what the report records and never presents findings as a model's behaviour. When the agent
+describes itself (`x_agentsec.agent`, AgentSec after 0.8.0) the run shows what it reported, and a scripted backend is
+labelled **Scripted stand-in**; reports from those versions also carry each attack-pack scenario's `delivery` and
+declared `attack_goals` (achieved, not achieved, or not tested), which the scenario view lists. Otherwise the page
+says the report does not record who decided; record it in the upload label (for example
+`--label "hardened, claude-sonnet-4-5"`).
+
+### Engine compatibility
+
+The rules for verdicts, evaluation, attack timelines and comparisons live in AgentSec (`agentsec.verdicts`, used by
+`agentsec compare` and the local `agentsec dashboard`); `app/insights.py` takes everything the installed engine
+returns and fills in only what an older engine lacks, from `app/_compat_verdicts.py`, a vendored copy of
+`agentsec/verdicts.py`. So the hosted page, the local dashboard and the CLI agree:
+
+| Installed AgentSec | Result |
+|---|---|
+| `add-dashboard` branch (0.7.0, what CI installs today) | Works; the vendored rules fill in inconclusive handling, timelines, verdict changes |
+| `main` after 0.8.0 with `agentsec.verdicts`, local dashboard not yet ported | Works; the engine's rules are used, parity tests run |
+| `main` merged with `add-dashboard` plus the local-dashboard port | Works; hosted, local and CLI results are checked to be identical |
+
+`tests/test_engine_parity.py` checks that the vendored copy gives the engine's answers and that hosted, local and CLI
+comparisons match whenever the installed engine has `agentsec.verdicts`. Delete `app/_compat_verdicts.py` once the
+dashboard requires the AgentSec release that ships it.
 
 ## Security
 
@@ -49,7 +89,7 @@ there plus billing, and the open-source app keeps working without it.
 ## Run it locally
 
 You need Python 3.11+, Postgres 14+ (or nothing, with SQLite for a quick look), and a checkout of
-`invaris-agentsec` that includes `agentsec.dashboard` (the release after 0.7.0, or the branch that adds it).
+`invaris-agentsec` that includes `agentsec.dashboard` (AgentSec 0.9.0 or later, or the branch that adds it).
 
 ```bash
 pip install -e ../invaris-agentsec            # AgentSec with agentsec.dashboard
@@ -70,10 +110,10 @@ agentsec test --policy agentsec.yaml
 agentsec upload .agentsec/report.json --server http://localhost:8000
 ```
 
-Or with Docker: `docker compose up --build` (Postgres plus the app, development sign-in on). Set
-`AGENTSEC_REQUIREMENT` to the AgentSec requirement to install, for example
-`invaris-agentsec @ git+https://github.com/invarislabs/invaris-agentsec.git@<branch>`, until a release includes
-`agentsec.dashboard`.
+Or with Docker: `docker compose up --build` (Postgres plus the app, development sign-in on). Until AgentSec 0.9.0 is
+published, the image installs AgentSec from the pinned `add-dashboard` commit that CI tests against; set
+`AGENTSEC_REQUIREMENT` to install another one, for example
+`invaris-agentsec @ git+https://github.com/invarislabs/invaris-agentsec.git@<branch or commit>`.
 
 ## Deploy
 
@@ -101,11 +141,13 @@ container host with a managed Postgres (Fly.io, Render, Railway, ECS, Cloud Run)
 Session (cookie) endpoints used by the page, all under `/api`: `me`, `meta`, `projects` (list, create),
 `projects/{slug}` (read, rename, delete), `projects/{slug}/reports` (list, filter by `branch` or `name`),
 `projects/{slug}/reports/{id}` (report plus insights; `/download` for the original file; delete),
-`projects/{slug}/compare?base=&head=`, and `projects/{slug}/tokens` (list, create, revoke).
+`projects/{slug}/compare?base=&head=` (`agentsec compare` as data, plus `verdict_changes`, `evaluation` for both
+runs, and a `reason` on each not-comparable finding: `missing`, `error` or `inconclusive`), and `projects/{slug}/tokens` (list, create, revoke).
 
 Upload endpoint: `POST /api/v1/reports` with `Authorization: Bearer asp_...`. The body is
 `{"report": <report.json>, "metadata": {"branch", "commit", "ci_url", "repository", "label"}}` or a bare report,
-optionally gzip-compressed (`Content-Encoding: gzip`). It returns `201 {"id", "project", "url", "findings"}`.
+optionally gzip-compressed (`Content-Encoding: gzip`). It returns `201 {"id", "project", "url", "findings",
+"inconclusive"}` (`inconclusive` is null for MCP scans).
 
 ## Layout
 
@@ -118,7 +160,10 @@ app/
   auth.py         GitHub OAuth and development sign-in
   api.py          JSON API for the page
   ingest.py       POST /api/v1/reports
-  reports.py      storing and reading reports; uses agentsec.dashboard for summaries, insights and compare
+  reports.py      storing and reading reports; uses agentsec.dashboard for summaries
+  insights.py     insights and compare from agentsec.dashboard and agentsec.verdicts; fills in only what an
+                  older engine lacks
+  _compat_verdicts.py  vendored agentsec/verdicts.py for engines that predate it (delete when no longer needed)
   security.py     tokens, same-origin writes, security headers, access checks
   maintenance.py  retention pruning
   static/         the page (vanilla JS, no build step, bundled IBM Plex fonts)
@@ -134,7 +179,16 @@ TEST_DATABASE_URL=postgresql+psycopg://agentsec@localhost/dashboard_test pytest 
 ```
 
 The fixtures in `tests/fixtures` are real AgentSec output: the vulnerable and `--safe` reference agent, and the
-poisoned demo MCP server. One test runs the real `agentsec upload` client over HTTP against a running server.
+poisoned demo MCP server (AgentSec 0.7 format, kept to check older reports still work), and AgentSec 0.8.0 reports
+over the engine's email and browser attack packs (`email-baseline-report.json`, `email-hardened-report.json`,
+`browser-report.json`), plus `email-described-report.json` in the newer format (scenario `delivery` and
+`attack_goals`, and the agent describing itself as `backend: scripted`). Those four come from AgentSec's real pipeline driven by a scripted stand-in agent, not a
+language model, so they exercise every verdict (findings, passed, inconclusive) and say nothing about any model.
+Regenerate them with `python tests/fixtures/generate_pack_fixtures.py ../invaris-agentsec`. One test runs the real
+`agentsec upload` client over HTTP against a running server.
+
+Upgrading an existing deployment runs migration `0002`, which adds `reports.inconclusive` and fills it for runs
+already stored from the stored reports.
 
 ## Not built yet
 

@@ -109,6 +109,8 @@ class Report(Base):
     with_findings: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     errors: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     not_observable: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # scenarios whose adversarial content never reached the agent (AgentSec 0.8.0+); never counted as passed
+    inconclusive: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     findings: Mapped[int] = mapped_column(Integer, default=0)
     critical: Mapped[int] = mapped_column(Integer, default=0)
     high: Mapped[int] = mapped_column(Integer, default=0)

@@ -75,4 +75,5 @@ async def upload_report(request: Request, db: Session = Depends(get_db)):
     token.last_used_at = utcnow()
     db.commit()
     url = "%s/#/p/%s/r/%s" % (get_settings().public_url, project.slug, row.id)
-    return {"id": row.id, "project": project.slug, "url": url, "findings": row.findings}
+    return {"id": row.id, "project": project.slug, "url": url, "findings": row.findings,
+            "inconclusive": row.inconclusive}
