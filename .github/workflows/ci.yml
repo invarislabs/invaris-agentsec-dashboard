@@ -20,9 +20,8 @@ jobs:
           --health-cmd "pg_isready -U agentsec" --health-interval 2s --health-retries 30
     env:
       TEST_DATABASE_URL: postgresql+psycopg://agentsec:agentsec@localhost:5432/dashboard_test
-      # agentsec.dashboard first ships in AgentSec 0.9.0. Until then, the add-dashboard commit (pinned, so CI keeps
-      # working after that branch is merged and deleted). Switch to invaris-agentsec==0.9.0 once it is published.
-      AGENTSEC_REQUIREMENT: invaris-agentsec @ git+https://github.com/invarislabs/invaris-agentsec.git@15f909e615b765b906af00504e0c4959f8fe342f
+      # The engine release this dashboard is tested against; raise it together with pyproject.toml.
+      AGENTSEC_REQUIREMENT: invaris-agentsec==0.9.0
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
