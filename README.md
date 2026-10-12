@@ -125,6 +125,23 @@ container host with a managed Postgres (Fly.io, Render, Railway, ECS, Cloud Run)
 3. Schedule `python -m app.maintenance prune` daily to delete runs past the plan's retention.
 4. Check `GET /healthz`.
 
+### Deploy to Fly.io
+
+`fly.toml` is ready: it builds the `Dockerfile`, runs `alembic upgrade head` once per deploy as the release command,
+and checks `/healthz`. `DATABASE_URL` may be a `postgres://` or `postgresql://` URL as hosts provide it, including a
+PgBouncer-pooled one (automatic prepared statements are off for that reason).
+
+```bash
+fly apps create invaris-agentsec-dashboard          # or edit `app` in fly.toml if the name is taken
+fly mpg create --name agentsec-db --region bom      # Managed Postgres in the same region
+fly mpg attach <cluster id from `fly mpg list`> -a invaris-agentsec-dashboard   # sets DATABASE_URL
+fly secrets set -a invaris-agentsec-dashboard --stage SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')" \
+  PUBLIC_URL=https://invaris-agentsec-dashboard.fly.dev GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=...
+fly deploy
+```
+
+The GitHub OAuth app's callback URL is `https://<app>.fly.dev/auth/github/callback`.
+
 ## Free plan limits
 
 | Variable | Default | Meaning |

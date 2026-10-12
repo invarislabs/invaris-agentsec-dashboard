@@ -14,6 +14,33 @@ def _bool(name: str, default: bool = False) -> bool:
     return value.strip().lower() in ("1", "true", "yes", "on")
 
 
+DEFAULT_DATABASE_URL = "postgresql+psycopg://agentsec@localhost:5432/dashboard"
+
+
+def database_url(value: Optional[str] = None) -> str:
+    """DATABASE_URL for SQLAlchemy. Hosts such as Fly.io, Render, Railway and Heroku hand out `postgres://` or
+    `postgresql://` URLs; SQLAlchemy reads those as "use the default driver", so they become the psycopg 3 driver
+    this app ships with. Explicit `postgresql+<driver>://` and SQLite URLs are left alone."""
+    url = (value if value is not None else os.environ.get("DATABASE_URL", "")).strip() or DEFAULT_DATABASE_URL
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
+def engine_options(url: str) -> dict:
+    """create_engine() options for the app and for migrations."""
+    if url.startswith("sqlite"):
+        return {"connect_args": {"check_same_thread": False}}
+    options: dict = {"pool_pre_ping": True}
+    if url.startswith("postgresql+psycopg"):
+        # Managed Postgres is often behind PgBouncer in transaction mode (Fly.io Managed Postgres, Supabase, Neon
+        # pooled URLs). psycopg 3 prepares a statement after it runs five times, and prepared statements do not
+        # survive the pooler switching server connections, so turn automatic preparation off.
+        options["connect_args"] = {"prepare_threshold": None}
+    return options
+
+
 def _int(name: str, default: int) -> int:
     value = os.environ.get(name)
     return int(value) if value not in (None, "") else default
@@ -62,7 +89,7 @@ def get_settings() -> Settings:
         if dev_login:
             raise ConfigError("AGENTSEC_DEV_LOGIN cannot be enabled in production")
     settings = Settings(
-        database_url=os.environ.get("DATABASE_URL", "postgresql+psycopg://agentsec@localhost:5432/dashboard"),
+        database_url=database_url(),
         secret_key=secret or "dev-only-insecure-secret-key-change-me-0000",
         public_url=os.environ.get("PUBLIC_URL", "http://localhost:8000").rstrip("/"),
         github_client_id=os.environ.get("GITHUB_CLIENT_ID") or None,

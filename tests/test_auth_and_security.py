@@ -131,3 +131,29 @@ def test_page_never_inserts_report_text_as_markup():
     js = (STATIC / "app.js").read_text()
     for sink in ("innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "eval(", "new Function"):
         assert sink not in js, sink
+
+
+def test_database_urls_from_hosting_providers_are_accepted():
+    """Fly.io, Render, Railway and Heroku set DATABASE_URL to postgres:// or postgresql://."""
+    from app.config import database_url, engine_options
+    want = "postgresql+psycopg://u:p@db.internal:5432/app?sslmode=require"
+    assert database_url("postgres://u:p@db.internal:5432/app?sslmode=require") == want
+    assert database_url("postgresql://u:p@db.internal:5432/app?sslmode=require") == want
+    assert database_url(want) == want
+    assert database_url("postgresql+asyncpg://x/y") == "postgresql+asyncpg://x/y"
+    assert database_url("sqlite:///dash.db") == "sqlite:///dash.db"
+    assert database_url("  ").startswith("postgresql+psycopg://")
+    # behind PgBouncer (Fly.io Managed Postgres) prepared statements must stay off
+    assert engine_options(want)["connect_args"] == {"prepare_threshold": None}
+    assert engine_options("sqlite:///x.db") == {"connect_args": {"check_same_thread": False}}
+
+
+def test_settings_normalise_database_url(monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setenv("DATABASE_URL", "postgres://u:p@h:5432/d")
+    monkeypatch.setenv("AGENTSEC_ENV", "development")
+    get_settings.cache_clear()
+    try:
+        assert get_settings().database_url == "postgresql+psycopg://u:p@h:5432/d"
+    finally:
+        get_settings.cache_clear()
