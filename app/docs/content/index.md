@@ -44,21 +44,10 @@ AgentSec makes these failures reproducible (every run is seeded), visible (full 
 - [GitHub Action](/docs/testing/ci-github-actions): Runs AgentSec in CI, comments on pull requests and uploads to the dashboard.
 :::
 
-```diagram title="How a run flows"
-  agentsec.yaml (your policy)
-        │
-        ▼
-  ┌───────────────┐   adversarial messages,      ┌───────────────┐
-  │ AgentSec      │   simulated tool results ──▶ │ Your agent     │
-  │ engine        │ ◀── replies and tool calls   │ (HTTP, Python, │
-  └──────┬────────┘                              │  MCP, ...)     │
-         │ traces → evaluators → findings        └───────────────┘
-         ▼
-  report.json / report.html / summary.md / results.sarif
-         │
-         ├──▶ agentsec dashboard   (local, read-only)
-         └──▶ agentsec upload ───▶ hosted dashboard (this app): history, comparison, sharing
-```
+:::diagram how-a-run-flows
+alt: Diagram: the policy drives the AgentSec engine, which sends attacks and simulated tool results to your agent and records its replies and tool calls. The trace goes through evaluators to findings and one verdict per scenario, written as reports that reach the terminal and CI, the local dashboard, or the hosted dashboard through agentsec upload.
+How a run flows: AgentSec attacks your agent as your policy describes, evaluates what it did, and writes reports you read in the terminal, in CI or in a dashboard.
+:::
 
 ## Where to start
 

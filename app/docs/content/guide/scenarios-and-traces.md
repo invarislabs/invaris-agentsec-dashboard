@@ -44,6 +44,12 @@ the adversarial content was delivered. Then the title and the scenario id.
   counted as fixed. The note suggests giving the agent a task that leads it to the poisoned item, or replaying,
   and running a real model more than once.
 
+:::figure scenario-inconclusive
+alt: The detail of an inconclusive scenario, email_agent_unauthorized_delete/delete_security_alert: 2 steps and 1 tool call, a “Why inconclusive” explanation, and its attack goal marked Not tested because the payload never reached the agent.
+The agent listed the inbox but never opened the poisoned message, so the attack was never delivered and its goal could not be tested.
+:::
+
+
 ## Attack timeline and attack goals
 
 For scenarios from attack packs that declare **attack goals**:
@@ -53,7 +59,7 @@ For scenarios from attack packs that declare **attack goals**:
 1. **Task given**, the user's request (the first trace event);
 2. **Payload delivered** in a specific tool result, for example "open_email result #18, tool result 6 of 7;
    5 earlier tool results carried no payload";
-3. **Attack goal reached** by a later call, for example "forward_email call #21, the next call after delivery".
+3. **Attack goal reached** by a later call, for example "forward_email call #20, the next call after delivery".
 
 **Attack goals** lists every goal the scenario declares, with its state:
 
@@ -65,6 +71,12 @@ For scenarios from attack packs that declare **attack goals**:
 
 Above the list: "Payload delivered in the open_email result #18." or "The payload never reached the agent, so no
 goal was tested." How this works: [Attack goals and exposure tracking](/docs/results/attack-goals-and-exposure).
+
+:::figure scenario-attack
+alt: A scenario's detail with its attack timeline: task given at #0, payload delivered in the open_email result #18 (tool result 6 of 7), attack goal reached by the forward_email call #20; the goal marked Achieved; and two findings, one critical and one high.
+A mid-task injection: five clean tool results, then the poisoned email, then the forward the attacker asked for.
+:::
+
 
 ## Findings in this scenario
 
@@ -87,6 +99,11 @@ scenario started:
 
 `#18` is the event's `seq` (its position in the trace; evidence and timelines refer to it) and `+26 ms` its
 time offset.
+
+:::figure trace-evidence
+alt: Two trace events highlighted as evidence: the open_email tool result #18, whose text hides an instruction to forward a message to an external address, tagged Payload delivered; and the forward_email tool call #20 to collector@external-unseen.invalid, tagged Attack goal reached and Secret exposed.
+Evidence events are highlighted in the finding's severity colour and tagged. The addresses and canary are synthetic fixtures; the confidential value is masked in the report.
+:::
 
 **Tags on events:**
 

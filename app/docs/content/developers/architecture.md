@@ -78,9 +78,11 @@ app/
   insights.py      insights and compare from AgentSec; fills in what an older engine lacks
   _compat_verdicts.py  vendored agentsec/verdicts.py for older engines
   maintenance.py   python -m app.maintenance prune
-  docs/            this documentation: content/*.md, the Markdown renderer, highlighter, routes
+  docs/            this documentation: content/*.md, images/ (screenshots), diagrams/ (SVG), the Markdown
+                   renderer, highlighter, routes
   static/          index.html, app.js, app.css (the dashboard), docs.css, docs.js, theme.js, fonts
 migrations/        Alembic (0001 initial schema, 0002 reports.inconclusive)
+scripts/           docs_screenshots.py and docs_diagrams.py: regenerate the documentation's pictures
 tests/             pytest, with real AgentSec reports as fixtures
 Dockerfile, render.yaml, docker-compose.yml, .github/workflows/{ci,prune,cla}.yml
 ```

@@ -14,6 +14,12 @@ Reports reach the hosted dashboard only when you send them. Nothing in AgentSec 
 - The token in an environment variable, `AGENTSEC_TOKEN` by default. It is never accepted as a command-line
   argument, so it cannot end up in shell history or CI logs.
 
+:::figure token-created
+alt: Project settings, Upload tokens: a newly created token, masked, with a Copy button, above the table of the project's tokens.
+Create the token in the project's **Settings**; it is shown once (masked in this picture).
+:::
+
+
 ## With the CLI
 
 ```bash
@@ -113,6 +119,11 @@ Full request and error reference: [Dashboard API](/docs/reference/api#upload-a-r
 3. Checks it is an AgentSec report, summarises it with AgentSec's own code, and stores the full JSON compressed.
 4. Removes the project's oldest runs beyond the plan's run limit.
 5. Records when the token was last used and returns the run's link.
+
+:::diagram report-to-dashboard
+alt: Diagram: on your machine or in CI, agentsec test writes .agentsec/report.json, and agentsec upload or the GitHub Action sends it over HTTPS with a Bearer upload token. The hosted dashboard checks the token, reads the body within the plan's size limit after decompression, checks, summarises and stores the report, trims the project to its plan, and the run appears in the project.
+The upload path, from `agentsec test` to the run in your project.
+:::
 
 `--no-traces` runs are marked, and their pages say full transcripts are not available.
 

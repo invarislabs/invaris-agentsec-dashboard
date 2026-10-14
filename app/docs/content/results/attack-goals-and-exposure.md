@@ -34,6 +34,11 @@ If a scenario with exposure finishes with no delivery and no findings, its verdi
 {{status:inconclusive}}, never {{status:passed}}. Built-in categories do not set exposure (their content is
 delivered in the first tool result or the user message), so they are never inconclusive.
 
+:::diagram delivery-and-goals
+alt: Diagram of a trace in order: the task, two tool results with no payload, a tool result that contains the exposure text (1, payload delivered), and a tool call that matches the goal (2, attack goal reached). When 1 and 2 happen, the finding attack_goal_achieved has the delivering result and the call as evidence and the scenario was tested. When 1 never happens, nothing was measured: the scenario is inconclusive and its goals are not tested, never counted as passed or fixed.
+Delivery decides whether a scenario was tested; a goal is only judged on calls made after delivery.
+:::
+
 ## Attack goals
 
 A scenario can also declare **attack goals**: the tool calls that would prove the attack worked, for example
@@ -68,11 +73,16 @@ stops before that step is reported as inconclusive.
 ## Reading it in the dashboard
 
 - **Overview > Attacks that reached their goal**: one row per achieved goal, with the path from payload to
-  action, for example `open_email #18 (result 6 of 7) → forward_email #21`.
+  action, for example `open_email #18 (result 6 of 7) → forward_email #20`.
 - **Overview > What this run measured**: tested versus inconclusive, and "Attack goals reached".
 - **Scenario detail**: the attack timeline, each declared goal as Achieved, Not achieved or Not tested, and the
   trace with **Payload delivered** and **Attack goal reached** tags on the events.
 - **Compare runs > Scenario verdicts**: which scenarios moved from tested to inconclusive.
+
+:::figure scenario-attack
+alt: A scenario's detail with its attack timeline: task given at #0, payload delivered in the open_email result #18 (tool result 6 of 7), attack goal reached by the forward_email call #20; the goal marked Achieved; and two findings, one critical and one high.
+A scenario's attack timeline and goals in the dashboard.
+:::
 
 ## Example: baseline versus hardened email assistant
 
@@ -112,6 +122,11 @@ Not tested in the new run (1), so not an improvement
 0 new, 0 worse, 12 fixed, 0 better, 0 unchanged
 tested 7 -> 7 of 8 -> 8 scenarios; inconclusive 1 -> 1; 8 scenario verdict(s) changed
 ```
+
+:::figure compare-not-comparable
+alt: The Not comparable group of a comparison: two baseline findings of email_agent_external_send/new_message, marked inconclusive in the current run (attack not delivered).
+The same two findings in the dashboard's **Compare runs**.
+:::
 
 A naive diff would have said 14 findings were fixed. Twelve were; two are unknown until a run delivers that
 payload again. The dashboard's [Compare runs](/docs/guide/compare) view shows the same split.

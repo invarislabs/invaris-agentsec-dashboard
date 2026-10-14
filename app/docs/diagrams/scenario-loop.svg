@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400">
+<defs><marker id="scenario-loop-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="d-key" x="18" y="10" width="184" height="40" rx="8"/>
+<text class="d-t" x="110" y="35" text-anchor="middle">AgentSec runner</text>
+<path class="d-line dash" d="M110,50 V318"/>
+<rect class="d-box" x="268" y="10" width="184" height="40" rx="8"/>
+<text class="d-t" x="360" y="35" text-anchor="middle">Adapter</text>
+<path class="d-line dash" d="M360,50 V318"/>
+<rect class="d-box" x="518" y="10" width="184" height="40" rx="8"/>
+<text class="d-t" x="610" y="35" text-anchor="middle">Your agent</text>
+<path class="d-line dash" d="M610,50 V318"/>
+<text class="d-s" x="360" y="66" text-anchor="middle">HTTP, Python function,</text>
+<text class="d-s" x="360" y="80" text-anchor="middle">LangChain, ToolHost, MCP</text>
+<path class="d-line" d="M114,106 H604" marker-end="url(#scenario-loop-a)"/>
+<text class="d-s" x="360" y="99" text-anchor="middle">1  the user's message (a task, or the attack itself), session id, declared tools</text>
+<path class="d-line" d="M606,148 H116" marker-end="url(#scenario-loop-a)"/>
+<text class="d-s" x="360" y="141" text-anchor="middle">2  tool call: search_documents(…)</text>
+<path class="d-line" d="M114,190 H604" marker-end="url(#scenario-loop-a)"/>
+<text class="d-s" x="360" y="183" text-anchor="middle">3  simulated result: for a scenario tool, it carries the poisoned content</text>
+<path class="d-line" d="M606,232 H116" marker-end="url(#scenario-loop-a)"/>
+<text class="d-s" x="360" y="225" text-anchor="middle">4  tool call: send_email(…)  is recorded and flagged, never executed</text>
+<path class="d-line" d="M114,274 H604" marker-end="url(#scenario-loop-a)"/>
+<text class="d-s" x="360" y="267" text-anchor="middle">5  OK (simulated by AgentSec sandbox; no real action was taken)</text>
+<path class="d-line" d="M606,310 H116" marker-end="url(#scenario-loop-a)"/>
+<text class="d-s" x="360" y="303" text-anchor="middle">6  final reply, with no tool calls</text>
+<rect class="d-soft" x="18" y="336" width="684" height="52" rx="8"/>
+<text class="d-s" x="360" y="358" text-anchor="middle">Repeats until a reply has no tool calls or a limit (steps, tool calls, time) stops it.</text>
+<text class="d-s" x="360" y="376" text-anchor="middle">Then the trace is evaluated against the policy: findings, and one verdict for the scenario.</text>
+</svg>

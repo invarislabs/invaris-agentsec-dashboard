@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 432" width="720" height="432">
+<defs><marker id="verdict-decision-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="d-soft" x="130" y="8" width="220" height="36" rx="8"/>
+<text class="d-t" x="240" y="31" text-anchor="middle">A scenario has finished</text>
+<path class="d-line" d="M240,44 V60" marker-end="url(#verdict-decision-a)"/>
+<rect class="d-box" x="60" y="64" width="360" height="52" rx="8"/>
+<text class="d-t" x="240" y="95" text-anchor="middle">Did any check fire?</text>
+<path class="d-line" d="M420,90 H494" marker-end="url(#verdict-decision-a)"/>
+<text class="d-yes" x="457" y="83" text-anchor="middle">yes</text>
+<rect class="d-bad" x="498" y="70" width="134" height="40" rx="20"/>
+<text class="d-t" x="565" y="95" text-anchor="middle">Findings</text>
+<text class="d-s" x="644" y="94" text-anchor="start">tested</text>
+<path class="d-line" d="M240,116 V136" marker-end="url(#verdict-decision-a)"/>
+<text class="d-no" x="252" y="130" text-anchor="start">no</text>
+<rect class="d-box" x="60" y="140" width="360" height="52" rx="8"/>
+<text class="d-t" x="240" y="163" text-anchor="middle">Did the trace end in an error?</text>
+<text class="d-s" x="240" y="179" text-anchor="middle">unreachable, timeout, bad reply</text>
+<path class="d-line" d="M420,166 H494" marker-end="url(#verdict-decision-a)"/>
+<text class="d-yes" x="457" y="159" text-anchor="middle">yes</text>
+<rect class="d-err" x="498" y="146" width="134" height="40" rx="20"/>
+<text class="d-t" x="565" y="171" text-anchor="middle">Error</text>
+<text class="d-s" x="644" y="170" text-anchor="start">not tested</text>
+<path class="d-line" d="M240,192 V212" marker-end="url(#verdict-decision-a)"/>
+<text class="d-no" x="252" y="206" text-anchor="start">no</text>
+<rect class="d-box" x="60" y="216" width="360" height="52" rx="8"/>
+<text class="d-t" x="240" y="239" text-anchor="middle">Multi-agent scenario, and no event</text>
+<text class="d-s" x="240" y="255" text-anchor="middle">says which agent acted?</text>
+<path class="d-line" d="M420,242 H494" marker-end="url(#verdict-decision-a)"/>
+<text class="d-yes" x="457" y="235" text-anchor="middle">yes</text>
+<rect class="d-muted" x="498" y="222" width="134" height="40" rx="20"/>
+<text class="d-t" x="565" y="247" text-anchor="middle">Not observable</text>
+<text class="d-s" x="644" y="246" text-anchor="start">not tested</text>
+<path class="d-line" d="M240,268 V288" marker-end="url(#verdict-decision-a)"/>
+<text class="d-no" x="252" y="282" text-anchor="start">no</text>
+<rect class="d-box" x="60" y="292" width="360" height="52" rx="8"/>
+<text class="d-t" x="240" y="315" text-anchor="middle">Tracks delivery, and the content never</text>
+<text class="d-s" x="240" y="331" text-anchor="middle">reached the agent in a tool result?</text>
+<path class="d-line" d="M420,318 H494" marker-end="url(#verdict-decision-a)"/>
+<text class="d-yes" x="457" y="311" text-anchor="middle">yes</text>
+<rect class="d-warn" x="498" y="298" width="134" height="40" rx="20"/>
+<text class="d-t" x="565" y="323" text-anchor="middle">Inconclusive</text>
+<text class="d-s" x="644" y="322" text-anchor="start">not tested</text>
+<path class="d-line" d="M240,344 V364" marker-end="url(#verdict-decision-a)"/>
+<text class="d-no" x="252" y="358" text-anchor="start">no</text>
+<rect class="d-box" x="60" y="368" width="360" height="52" rx="8"/>
+<text class="d-t" x="240" y="399" text-anchor="middle">Attacked and judged, nothing fired</text>
+<path class="d-line" d="M420,394 H494" marker-end="url(#verdict-decision-a)"/>
+<rect class="d-ok" x="498" y="374" width="134" height="40" rx="20"/>
+<text class="d-t" x="565" y="399" text-anchor="middle">Passed</text>
+<text class="d-s" x="644" y="398" text-anchor="start">tested</text>
+</svg>

@@ -8,6 +8,12 @@ order: 3
 Open a project to see **Runs and history**: how the latest run did, how findings changed over time, and every
 run in the project.
 
+:::figure project-page
+alt: The support-agent project page: the latest run passed all 35 scenarios with 43 fewer findings than the run before, and the findings-per-run chart shows three runs: one where every scenario errored, one with 43 findings and one with none.
+A project with three runs of one agent: made while the agent was down (every scenario errored), the vulnerable build (43 findings) and the hardened build (all 35 passed). The newest is summarised at the top; the chart has the oldest on the left.
+:::
+
+
 ## Before the first upload
 
 A project without runs shows **Send your first report** with three steps:
@@ -25,6 +31,12 @@ agentsec upload .agentsec/report.json --server https://<this dashboard>
    `dashboard-url` and `dashboard-token` inputs. See [CI and GitHub Actions](/docs/testing/ci-github-actions).
 
 Add `--no-traces` to the upload to leave full transcripts out; findings and their evidence are still sent.
+
+:::figure project-empty
+alt: An empty project page titled support-agent with “Send your first report”: 1, create a project token; 2, commands to upload a report from your machine; 3, a GitHub Actions workflow snippet.
+A project before its first upload. The commands contain the dashboard's address (the one in this picture is an example).
+:::
+
 
 ## Header
 
@@ -94,6 +106,12 @@ Hover over or focus a bar to see the upload time, the run's label and its summar
 | Passed | Scenarios that passed (– for MCP scans) |
 | Findings | The severity strip and the run summary |
 | CI | A link to the CI run, when the upload recorded one |
+
+:::figure runs-table
+alt: The runs table with three rows: hardened on branch harden-retrieval, 35 scenarios, 35 passed; baseline on main, 35 scenarios, 0 passed, 10 critical, 25 high, 8 medium; and a run on main in which 5 scenarios errored.
+Runs uploaded with `--label` show the label with the branch below it; the unlabelled run shows its branch.
+:::
+
 
 Select any row to open the run. Labels, branches, commits and CI links come from the upload: they are read
 automatically inside GitHub Actions, or set with `agentsec upload --label/--branch/--commit/--ci-url`.

@@ -12,6 +12,8 @@ subset. Everything is escaped; raw HTML in a page is shown as text, never render
 - fenced code blocks: ```` ```yaml title="agentsec.yaml" ````; language `diagram` renders a text diagram
 - callouts: `> [!NOTE]`, `[!TIP]`, `[!WARNING]`, `[!IMPORTANT]`, `[!CAUTION]`, optionally followed by a title
 - link cards: a `:::cards` block of `- [Title](/docs/page): description` lines, closed by `:::`
+- screenshots and diagrams: `:::figure <name>` or `:::diagram <name>`, then an `alt:` line (what the picture
+  shows, for screen readers) and the caption (inline Markdown), closed by `:::`. See `assets.py`
 - the dashboard's own badges inline: `{{status:inconclusive}}`, `{{sev:critical}}`, `{{cell:passed}}`,
   `{{tag:Scripted stand-in}}`, `{{kbd:Ctrl K}}`
 """
@@ -22,6 +24,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
+from .assets import DENSITY, Assets
 from .highlight import LANGUAGE_LABELS, canonical, highlight
 
 CALLOUTS = {"NOTE": "Note", "TIP": "Tip", "WARNING": "Warning", "IMPORTANT": "Important", "CAUTION": "Caution"}
@@ -44,6 +47,7 @@ class Rendered:
     # (heading id or "" for the text before the first heading, heading text, plain text of that section)
     sections: List[Tuple[str, str, str]] = field(default_factory=list)
     links: List[str] = field(default_factory=list)
+    figures: List[str] = field(default_factory=list)     # screenshot and diagram names used, e.g. "diagram:x"
 
 
 def parse_front_matter(text: str) -> Tuple[Dict[str, str], str]:
@@ -170,8 +174,16 @@ _LIST = re.compile(r"^(\s*)([-*]|\d+[.)])\s+(.*)$")
 _TABLE_SEP = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$")
 
 
+_FIGURE = re.compile(r"^:::(figure|diagram)\s+([a-z0-9]+(?:-[a-z0-9]+)*)\s*$")
+
+
 class Renderer:
-    def __init__(self) -> None:
+    def __init__(self, assets: Optional[Assets] = None, strict: bool = True,
+                 problems: Optional[List[str]] = None) -> None:
+        self.assets = assets
+        self.strict = strict
+        self.problems = problems if problems is not None else []
+        self.figures: List[str] = []
         self.links: List[str] = []
         self.inline = Inline(self.links)
         self.headings: List[Heading] = []
@@ -191,7 +203,7 @@ class Renderer:
         body = self.blocks(lines, top=True)
         sections = [(s[0], s[1], re.sub(r"\s+", " ", s[2]).strip()) for s in self.sections
                     if s[1] or s[2].strip()]
-        return Rendered(body, self.headings, sections, self.links)
+        return Rendered(body, self.headings, sections, self.links, self.figures)
 
     def blocks(self, lines: List[str], top: bool = False) -> str:
         out: List[str] = []
@@ -219,6 +231,12 @@ class Renderer:
             if line.strip() == ":::cards":
                 i = self._cards(lines, i, out)
                 continue
+            m = _FIGURE.match(line.strip())
+            if m:
+                i = self._figure(lines, i, m.group(1), m.group(2), out)
+                continue
+            if line.strip().startswith(":::"):
+                raise ValueError("unknown block %r (use :::cards, :::figure <name> or :::diagram <name>)" % line.strip())
             if re.match(r"^\s*(-{3,}|\*{3,})\s*$", line):
                 out.append("<hr>")
                 i += 1
@@ -273,6 +291,58 @@ class Renderer:
         if i >= len(lines):
             raise ValueError(":::cards block is never closed with ':::'")
         out.append('<div class="dx-cards">%s</div>' % "".join(cards))
+        return i + 1
+
+    def _figure(self, lines: List[str], i: int, kind: str, name: str, out: List[str]) -> int:
+        """A screenshot (light and dark pair, lazy-loaded, click to enlarge) or an inline SVG diagram."""
+        start = lines[i].strip()
+        i += 1
+        body: List[str] = []
+        while i < len(lines) and lines[i].strip() != ":::":
+            body.append(lines[i].strip())
+            i += 1
+        if i >= len(lines):
+            raise ValueError("%s block is never closed with ':::'" % start)
+        if not body or not body[0].startswith("alt:") or len(body[0][4:].strip()) < 12:
+            raise ValueError("%s: the first line must be 'alt: <what the picture shows>' (12+ characters)" % start)
+        alt = body[0][4:].strip()
+        caption = "\n".join(l for l in body[1:]).strip()
+        if not caption:
+            raise ValueError("%s needs a caption after the alt line" % start)
+        self._text(caption)
+        cap = self.inline.render(caption)
+        alt_attr = html.escape(alt, quote=True)
+        self.figures.append("%s:%s" % (kind, name))
+        try:
+            if self.assets is None:
+                raise ValueError("%s: pictures can only be rendered with the docs assets loaded" % start)
+            if kind == "diagram":
+                self.assets.diagram(name)
+            else:
+                self.assets.screenshot(name)
+        except ValueError as exc:
+            if self.strict:
+                raise
+            # production: keep the page, show the caption without the picture, and report the problem
+            self.problems.append(str(exc))
+            out.append('<figure class="dx-figure dx-missing"><p class="dx-missing-note" role="note">%s</p>'
+                       '<figcaption>%s</figcaption></figure>' % (alt_attr, cap))
+            return i + 1
+        if kind == "diagram":
+            svg = self.assets.diagram(name)
+            out.append('<figure class="dx-figure dx-fig-diagram"><div class="dx-svg" role="img" aria-label="%s">%s</div>'
+                       '<figcaption>%s</figcaption></figure>' % (alt_attr, svg, cap))
+        else:
+            light, dark = self.assets.screenshot(name)
+            w, h = max(1, light.width // DENSITY), max(1, light.height // DENSITY)
+
+            def img(im, cls: str) -> str:
+                return ('<img class="%s" src="%s" alt="%s" width="%d" height="%d" loading="lazy" decoding="async">'
+                        % (cls, html.escape(im.url, quote=True), alt_attr, w, h))
+            out.append('<figure class="dx-figure dx-shot"><a class="dx-zoom" href="%s" data-dark="%s">%s%s'
+                       '<span class="dx-zoom-hint">Enlarge</span></a><figcaption>%s</figcaption></figure>'
+                       % (html.escape(light.url, quote=True), html.escape(dark.url, quote=True),
+                          img(light, "dx-light"), img(dark, "dx-dark"), cap))
         return i + 1
 
     def _quote(self, lines: List[str], i: int, out: List[str]) -> int:
@@ -370,7 +440,7 @@ class Renderer:
         while i < len(lines) and lines[i].strip():
             line = lines[i]
             if buf and (_HEADING.match(line) or _FENCE.match(line) or _LIST.match(line)
-                        or line.lstrip().startswith(">") or line.strip() == ":::cards"):
+                        or line.lstrip().startswith(">") or line.strip().startswith(":::")):
                 break
             buf.append(line.strip() if not line.endswith(" \\") else line.strip()[:-1].rstrip() + " \\")
             i += 1
@@ -380,8 +450,9 @@ class Renderer:
         return i
 
 
-def render(text: str) -> Rendered:
-    return Renderer().render(text)
+def render(text: str, assets: Optional[Assets] = None, strict: bool = True,
+           problems: Optional[List[str]] = None) -> Rendered:
+    return Renderer(assets, strict, problems).render(text)
 
 
 def first_paragraph(text: Optional[str]) -> str:

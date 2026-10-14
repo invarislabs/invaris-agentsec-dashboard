@@ -21,6 +21,11 @@ order: 13
 agentsec test -f json,html,markdown,sarif
 ```
 
+:::figure report-html
+alt: The top of report.html for vulnerable-rag-agent: summary cards (35 scenarios, 0 passed, 43 findings, 0 errors), severity counts, the OWASP agentic categories hit, and the first expandable findings.
+`report.html` from the Quickstart's first run. It follows the reader's light or dark setting.
+:::
+
 `agentsec replay` writes its own `report.json` under `.agentsec/replay/`, and `agentsec mcp scan` writes
 `mcp-report.json`. The JSON format is documented in [Report format](/docs/reference/report-format).
 

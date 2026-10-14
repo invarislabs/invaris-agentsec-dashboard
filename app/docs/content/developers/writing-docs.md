@@ -12,6 +12,8 @@ the server once, when the app starts.
 **What happens with a broken page.** In CI, `tests/test_docs.py` loads the docs strictly and fails on the first
 malformed page, so it should never be merged. If one is deployed anyway, production stays up: the page is left out
 (it answers 404), every other page is served, and the error is logged as `documentation page skipped: <file>: <reason>`.
+A missing or damaged picture does not take its page out: the caption is shown without it, and the problem is logged
+the same way.
 
 ## Where things are
 
@@ -21,6 +23,10 @@ malformed page, so it should never be merged. If one is deployed anyway, product
 | `app/docs/site.py` | Loads pages, builds the sidebar, search index, sitemap and the page shell (metadata, layout) |
 | `app/docs/markdown.py` | The Markdown renderer (a safe subset; raw HTML is shown as text) |
 | `app/docs/highlight.py` | Server-side syntax highlighting (shell, YAML, JSON, Python) |
+| `app/docs/assets.py` | Loads the screenshots and diagrams, checks them, and serves screenshots at `/docs/img/<file>` |
+| `app/docs/images/*.webp` | Screenshots, a light and a dark file per picture (`<name>-light.webp`, `<name>-dark.webp`) |
+| `app/docs/diagrams/*.svg` | Diagrams, inlined into the page and coloured by the theme |
+| `scripts/docs_screenshots.py`, `scripts/docs_diagrams.py` | Regenerate the screenshots and the diagrams (not shipped in the image) |
 | `app/docs/__init__.py` | Routes: `/docs`, `/docs/<page>`, `/docs/search`, `/docs/search-index.json`, `/docs/sitemap.xml` |
 | `app/static/docs.css`, `docs.js`, `theme.js` | Styles (built on the dashboard's `app.css` tokens), instant search, copy buttons, table of contents, theme |
 | `tests/test_docs.py` | Checks that keep the docs correct |
@@ -91,9 +97,49 @@ version: "1"
 :::
 ```
 
+- Screenshots and diagrams, each with a text alternative (`alt:`, read by screen readers; describe what the
+  picture shows) and a caption (inline Markdown; say what the reader should notice):
+
+```markdown
+:::figure run-verdict
+alt: The top of a run page: header facts, tabs, the headline "43 findings in 35 of 35 scenarios." and a severity bar.
+The header, tabs and verdict of the Quickstart's vulnerable reference agent.
+:::
+
+:::diagram verdict-decision
+alt: Flowchart: did any check fire? yes, Findings. Otherwise ...
+How a scenario's verdict is decided.
+:::
+```
+
+  A screenshot shows the light or the dark picture to match the reader's theme (the other is never downloaded),
+  loads lazily with its size reserved, and opens full size when selected. A diagram is inlined, so it follows the
+  theme too.
+
 - The dashboard's real badges, so the docs show exactly what the product shows: `{{status:inconclusive}}`,
   `{{sev:critical}}`, `{{cell:passed}}`, `{{tag:Scripted stand-in}}`, `{{kbd:Ctrl K}}`. They render as
   {{status:inconclusive}} {{sev:critical}} {{cell:passed}} {{tag:Scripted stand-in}} {{kbd:Ctrl K}}.
+
+## Screenshots and diagrams
+
+Every screenshot is the real dashboard showing real AgentSec reports. `scripts/docs_screenshots.py` makes them all
+again: it runs the engine's reference agents (vulnerable, hardened and not running), the email attack pack and an
+MCP scan of the demo server, uploads the reports to a throwaway copy of the dashboard, and photographs each view in
+light and dark mode at twice the display size. Upload tokens that appear are masked. Rerun it when a view changes:
+
+```bash
+pip install playwright pillow && playwright install chromium
+python scripts/docs_screenshots.py --engine ../invaris-agentsec                 # every screenshot
+python scripts/docs_screenshots.py --engine ../invaris-agentsec run-verdict     # only some
+python scripts/docs_diagrams.py                                                 # the diagrams
+```
+
+To add a screenshot, add a `sh.shoot(...)` line to the script (what to open and which part to keep), run it, then
+use the name in a `:::figure` block. Diagrams are drawn by `scripts/docs_diagrams.py` with classes only (`d-box`,
+`d-key`, `d-t`...), which `docs.css` colours; scripts, styles, links and images inside an SVG are refused.
+
+Show a picture only where it helps the reader find or understand something on the screen. The caption says what
+to notice; the text around it still explains everything, for readers who cannot see the picture.
 
 ## Keeping docs accurate
 
@@ -109,7 +155,9 @@ The implementation is the source of truth. `tests/test_docs.py` fails when:
 - an `agentsec.yaml` example in the docs fails to load with the engine's policy loader;
 - a "learn more" link from the dashboard (`docLink(...)` in `app.js`) points at a page or anchor that does not exist;
 - the engine version the docs name differs from the one the `Dockerfile` and CI install;
-- a page would not be included in the installed package;
+- a page, screenshot or diagram would not be included in the installed package;
+- a screenshot lacks its light or dark picture, a picture is not used by any page, a figure has no alt text or
+  caption, an image is over 200 KB, or a diagram contains anything other than shapes and text;
 - rendered pages contain inline scripts or `style` attributes (forbidden by the Content Security Policy).
 
 The checks compare names, not wording, so rephrasing a page or refactoring code does not break them; they fail only

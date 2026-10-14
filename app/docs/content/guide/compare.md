@@ -22,6 +22,12 @@ generated the report, then its label, branch and short commit. By default
 the current run is the newest run that has an earlier run of the same agent, and the baseline is that earlier
 run. **Compare with another run** on a run's page opens this view with that run as the current one.
 
+:::figure compare-summary
+alt: Compare runs for the email assistant: the baseline and current run pickers, the counters 0 new, 0 severity up, 12 fixed, 0 severity down, 0 unchanged and 2 not comparable, and the headline “No regressions, and 12 findings fixed. 2 findings could not be checked: the attack never reached the agent in the current run.”
+The email attack pack's baseline against its hardened build (a scripted stand-in assistant).
+:::
+
+
 Rules:
 
 - You need at least two runs: otherwise **Comparing needs two runs**. Runs are kept within the plan's retention and
@@ -69,6 +75,12 @@ nothing there, so the finding is listed as not comparable with its reason:
 | inconclusive in the current run (attack not delivered) | The adversarial content never reached the agent |
 | not observable in the current run | The agent did not report which agent acted |
 
+:::figure compare-not-comparable
+alt: The Not comparable group of a comparison: two baseline findings of email_agent_external_send/new_message, marked inconclusive in the current run (attack not delivered).
+Two baseline findings that did not come back, but only because the attack never reached the hardened agent. They are not counted as fixed.
+:::
+
+
 > [!IMPORTANT] Hardening that only avoids the poison is not a fix
 > Suppose a "hardened" email assistant simply stops opening emails. Every poisoned-email scenario becomes
 > inconclusive and its findings disappear. A naive diff would call them fixed. AgentSec lists them as not
@@ -98,6 +110,11 @@ Then every scenario whose verdict changed, with both statuses and the change:
 | Only in the current run / Only in the baseline | The scenario exists in one run only |
 
 If nothing changed: "Every scenario has the same verdict in both runs."
+
+:::figure compare-verdicts
+alt: Scenario verdicts: a table of scenarios, tested, with findings, passed and inconclusive for the baseline and the current run, the finding rate among tested (100% and 0%), and the eight scenarios whose verdict changed, one of them from Findings to Inconclusive, “Not tested in the current run”.
+Six scenarios no longer have findings, one became tested and passed, and one became inconclusive: not a fix.
+:::
 
 ## The same comparison in the terminal or CI
 

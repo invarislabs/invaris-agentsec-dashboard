@@ -15,6 +15,11 @@ agentsec test --policy agentsec.yaml        # writes .agentsec/report.json
 agentsec dashboard                          # http://127.0.0.1:8710/
 ```
 
+:::figure local-dashboard
+alt: The local AgentSec dashboard listing two reports of vulnerable-rag-agent: .agentsec/hardened/report.json, where all 35 scenarios passed, and .agentsec/report.json, with 10 critical, 25 high and 8 medium findings.
+`agentsec dashboard .agentsec` after the Quickstart: a vulnerable and a hardened run of the same agent.
+:::
+
 ## Options
 
 | Option | Default | Meaning |

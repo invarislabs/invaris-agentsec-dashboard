@@ -361,6 +361,9 @@ input[type=text]{font:inherit;font-size:13px;color:var(--ink);background:var(--p
 .timeline li::marker{color:var(--ink-3)}
 .tag.mark-delivered{background:color-mix(in srgb,var(--medium) 22%,transparent);color:var(--ink)}
 .tag.mark-goal{background:color-mix(in srgb,var(--critical) 14%,transparent);color:var(--ink)}
+.ev .flag .tag,.ev .flag .tag .sev{white-space:normal;max-width:100%}
+.ev .flag .tag .sev{display:inline}
+.ev .flag .tag .sev::before{display:inline-block;margin-right:6px;vertical-align:0}
 td.change{white-space:nowrap;font-size:13px}
 td.change.bad{color:var(--critical)}td.change.good{color:var(--ok)}td.change.warn{color:var(--ink);font-weight:500}
 
