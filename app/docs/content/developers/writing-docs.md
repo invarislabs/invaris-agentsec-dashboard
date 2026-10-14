@@ -1,0 +1,126 @@
+---
+title: Writing documentation
+description: How the /docs section of the AgentSec dashboard works and how to add or update a page - files, front matter, supported Markdown, callouts, badges, code blocks, search, and the checks that keep docs accurate.
+section: developers
+order: 9
+---
+
+These docs live in the dashboard repository and are served by the dashboard itself at `/docs`, on the same domain
+and deployment. There is no separate site, build step or dependency: pages are Markdown files rendered to HTML on
+the server once, when the app starts.
+
+**What happens with a broken page.** In CI, `tests/test_docs.py` loads the docs strictly and fails on the first
+malformed page, so it should never be merged. If one is deployed anyway, production stays up: the page is left out
+(it answers 404), every other page is served, and the error is logged as `documentation page skipped: <file>: <reason>`.
+
+## Where things are
+
+| Path | What it is |
+|---|---|
+| `app/docs/content/**/*.md` | The pages. A file's path is its URL: `content/testing/cli.md` → `/docs/testing/cli`, `content/index.md` → `/docs` |
+| `app/docs/site.py` | Loads pages, builds the sidebar, search index, sitemap and the page shell (metadata, layout) |
+| `app/docs/markdown.py` | The Markdown renderer (a safe subset; raw HTML is shown as text) |
+| `app/docs/highlight.py` | Server-side syntax highlighting (shell, YAML, JSON, Python) |
+| `app/docs/__init__.py` | Routes: `/docs`, `/docs/<page>`, `/docs/search`, `/docs/search-index.json`, `/docs/sitemap.xml` |
+| `app/static/docs.css`, `docs.js`, `theme.js` | Styles (built on the dashboard's `app.css` tokens), instant search, copy buttons, table of contents, theme |
+| `tests/test_docs.py` | Checks that keep the docs correct |
+
+## Add a page
+
+1. Create `app/docs/content/<area>/<name>.md` with front matter:
+
+```markdown
+---
+title: Testing with the CLI
+nav_title: CLI
+description: One sentence for search engines, link previews and the page lead.
+section: testing
+order: 2
+---
+```
+
+| Key | Required | Meaning |
+|---|---|---|
+| `title` | yes | The page heading and `<title>` |
+| `description` | yes | Shown under the title, used as the meta description and in link previews |
+| `section` | yes | Sidebar group: `start`, `guide`, `results`, `testing`, `developers` or `reference` |
+| `order` | no | Position within the group (default 100) |
+| `nav_title` | no | A shorter sidebar label |
+
+2. Write the content starting at `##` headings (the title is the page's only `h1`).
+3. Run `pytest tests/test_docs.py` and look at it with `uvicorn app.main:create_app --factory --reload`.
+
+The sidebar, previous/next links, search index and sitemap pick the page up automatically.
+
+## Supported Markdown
+
+- `##`, `###`, `####` headings, each with an anchor link; add `{#custom-id}` at the end of a heading to fix its id.
+- Paragraphs, `**bold**`, `*italic*`, `` `code` `` (use double backticks for code containing a backtick).
+- Links must be site paths (`/docs/testing/cli#anchor`), in-page anchors (`#anchor`) or `https://` URLs;
+  `http://`, protocol-relative `//host`, relative paths and `javascript:` fail the build. External links get an arrow
+  and `rel="noopener noreferrer"`. The tests also only allow external links to the project's GitHub organisation,
+  `genai.owasp.org` and `modelcontextprotocol.io`; add a domain to that list in `tests/test_docs.py` when you need one.
+- Lists (`-` or `1.`), nested by indentation; tables (escape a literal pipe inside a cell as `\|`); blockquotes; `---`.
+- Fenced code with a language and an optional title; every block gets a Copy button:
+
+````markdown
+```yaml title="agentsec.yaml"
+version: "1"
+```
+````
+
+  Languages highlighted: `bash`/`shell`, `yaml`, `json`, `python`; `text` is plain; `diagram` renders a text diagram.
+
+- Callouts, written as blockquotes:
+
+```markdown
+> [!NOTE]
+> Plain information.
+
+> [!WARNING] A custom title
+> Something that can go wrong.
+```
+
+  Kinds: `NOTE`, `TIP`, `WARNING`, `IMPORTANT`, `CAUTION`.
+
+- Link cards:
+
+```markdown
+:::cards
+- [Quickstart](/docs/quickstart): Install AgentSec and run your first test.
+:::
+```
+
+- The dashboard's real badges, so the docs show exactly what the product shows: `{{status:inconclusive}}`,
+  `{{sev:critical}}`, `{{cell:passed}}`, `{{tag:Scripted stand-in}}`, `{{kbd:Ctrl K}}`. They render as
+  {{status:inconclusive}} {{sev:critical}} {{cell:passed}} {{tag:Scripted stand-in}} {{kbd:Ctrl K}}.
+
+## Keeping docs accurate
+
+The implementation is the source of truth. `tests/test_docs.py` fails when:
+
+- a page does not parse, lacks front matter, or links to a page or anchor that does not exist;
+- an `agentsec` command or option from the installed engine's CLI parser is missing from the [CLI reference](/docs/reference/cli);
+- a key of the engine's policy schema (`agentsec schema policy`) is missing from the [Policy reference](/docs/reference/policy);
+- an API route of the dashboard is missing from the [Dashboard API](/docs/reference/api) page;
+- a dashboard setting (read in `app/config.py` or listed in `.env.example`) is missing from [Configuration](/docs/reference/configuration);
+- a finding rule known to the engine's OWASP mapping is missing from the [Rules reference](/docs/reference/rules);
+- a built-in attack category is missing from the [Attack catalog](/docs/reference/attack-catalog);
+- an `agentsec.yaml` example in the docs fails to load with the engine's policy loader;
+- a "learn more" link from the dashboard (`docLink(...)` in `app.js`) points at a page or anchor that does not exist;
+- the engine version the docs name differs from the one the `Dockerfile` and CI install;
+- a page would not be included in the installed package;
+- rendered pages contain inline scripts or `style` attributes (forbidden by the Content Security Policy).
+
+The checks compare names, not wording, so rephrasing a page or refactoring code does not break them; they fail only
+when something user-visible is added, renamed or removed without the docs following.
+
+When you change behaviour, update the matching page in the same pull request. When you upgrade the engine
+requirement, run the docs tests: new CLI options, policy keys or rules will be flagged.
+
+## Writing style
+
+- Write for someone using AgentSec for the first time, then add the detail a developer needs.
+- Use the exact labels, messages and commands the product shows; copy them from the code or a real run.
+- Say clearly when something is a limitation or planned, never imply it exists.
+- Prefer examples from real runs (the reference agents and test fixtures) over invented output.

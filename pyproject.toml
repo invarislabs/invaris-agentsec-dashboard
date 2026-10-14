@@ -35,7 +35,7 @@ dev = ["pytest>=8"]
 include = ["app*"]
 
 [tool.setuptools.package-data]
-app = ["static/*.html", "static/*.js", "static/*.css", "static/*.svg", "static/fonts/*"]
+app = ["static/*.html", "static/*.js", "static/*.css", "static/*.svg", "static/fonts/*", "docs/content/**/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

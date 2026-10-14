@@ -363,3 +363,11 @@ input[type=text]{font:inherit;font-size:13px;color:var(--ink);background:var(--p
 .tag.mark-goal{background:color-mix(in srgb,var(--critical) 14%,transparent);color:var(--ink)}
 td.change{white-space:nowrap;font-size:13px}
 td.change.bad{color:var(--critical)}td.change.good{color:var(--ok)}td.change.warn{color:var(--ink);font-weight:500}
+
+/* ---------- links to the documentation (/docs) ---------- */
+.bar-actions{display:flex;gap:6px;align-items:center}
+.doc-link{font-size:12.5px;color:var(--ink-3);text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:2px;white-space:nowrap}
+.doc-link:hover{color:var(--accent);text-decoration-color:var(--accent)}
+.tabs a.doc-link{margin:0 0 0 auto;align-self:center;padding:0 2px;border:0;font-weight:400;color:var(--ink-3)}
+.tabs a.doc-link:hover{color:var(--accent)}
+.head .doc-link{align-self:center}

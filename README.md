@@ -15,6 +15,15 @@ A few premium features will be added later; those will be paid and kept private,
 plan limit lives in one place (`app/plans.py`, tuned with environment variables), so a paid plan is a new entry
 there plus billing, and the open-source app keeps working without it.
 
+## Documentation
+
+The dashboard serves its own documentation at **`/docs`** (for example http://localhost:8000/docs when running
+locally): a user guide to every page of the dashboard, how to read verdicts and findings, testing guides for the CLI,
+Python API, pytest, frameworks, MCP, email and browser agents, attack packs and CI, a developer guide, and CLI, policy,
+report and API references. It is public, server-rendered from the Markdown files in `app/docs/content/`, and ships
+with every deployment. `tests/test_docs.py` checks it against the code: links and anchors, every CLI option, policy
+key, API route, setting and finding rule. See `/docs/developers/writing-docs` to add or edit a page.
+
 ## What it does
 
 - **Sign in with GitHub.** Only the GitHub id, login, name and avatar are kept; the OAuth access token is used once
@@ -216,6 +225,7 @@ app/
   _compat_verdicts.py  vendored agentsec/verdicts.py for engines that predate it (delete when no longer needed)
   security.py     tokens, same-origin writes, security headers, access checks
   maintenance.py  retention pruning
+  docs/           the /docs documentation: Markdown pages in docs/content/, renderer, search, routes
   static/         the page (vanilla JS, no build step, bundled IBM Plex fonts)
 migrations/       Alembic (uses DATABASE_DIRECT_URL when set, else DATABASE_URL)
 tests/            pytest; Postgres via TEST_DATABASE_URL, otherwise SQLite
