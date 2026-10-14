@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 440" width="720" height="440">
+<defs><marker id="investigate-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="d-soft" x="250" y="8" width="220" height="48" rx="8"/>
+<text class="d-t" x="360" y="29" text-anchor="middle">Open the run</text>
+<text class="d-s" x="360" y="45" text-anchor="middle">read the verdict and What this run measured</text>
+<path class="d-line" d="M360,56 V70 H124 V84" marker-end="url(#investigate-a)"/>
+<path class="d-line" d="M360,70 V84" marker-end="url(#investigate-a)"/>
+<path class="d-line" d="M360,70 H596 V84" marker-end="url(#investigate-a)"/>
+<rect class="d-bad" x="16" y="86" width="216" height="36" rx="18"/>
+<text class="d-t" x="124" y="109" text-anchor="middle">Findings</text>
+<path class="d-line" d="M124,122 V133" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="16" y="136" width="216" height="44" rx="8"/>
+<text class="d-t" x="124" y="155" text-anchor="middle">Findings tab</text>
+<text class="d-s" x="124" y="171" text-anchor="middle">start with the worst severity</text>
+<path class="d-line" d="M124,180 V193" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="16" y="196" width="216" height="44" rx="8"/>
+<text class="d-t" x="124" y="215" text-anchor="middle">Read the finding</text>
+<text class="d-s" x="124" y="231" text-anchor="middle">what the agent did, the policy</text>
+<path class="d-line" d="M124,240 V253" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="16" y="256" width="216" height="44" rx="8"/>
+<text class="d-t" x="124" y="275" text-anchor="middle">Open the full trace</text>
+<text class="d-s" x="124" y="291" text-anchor="middle">the evidence is highlighted</text>
+<path class="d-line" d="M124,300 V313" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="16" y="316" width="216" height="44" rx="8"/>
+<text class="d-t" x="124" y="335" text-anchor="middle">Fix the agent</text>
+<text class="d-s" x="124" y="351" text-anchor="middle">allowlist, guard, prompt</text>
+<rect class="d-warn" x="252" y="86" width="216" height="36" rx="18"/>
+<text class="d-t" x="360" y="109" text-anchor="middle">Inconclusive</text>
+<path class="d-line" d="M360,122 V133" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="252" y="136" width="216" height="44" rx="8"/>
+<text class="d-t" x="360" y="155" text-anchor="middle">Scenarios tab</text>
+<text class="d-s" x="360" y="171" text-anchor="middle">filter: Inconclusive</text>
+<path class="d-line" d="M360,180 V193" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="252" y="196" width="216" height="44" rx="8"/>
+<text class="d-t" x="360" y="215" text-anchor="middle">Why inconclusive</text>
+<text class="d-s" x="360" y="231" text-anchor="middle">the payload never arrived</text>
+<path class="d-line" d="M360,240 V253" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="252" y="256" width="216" height="44" rx="8"/>
+<text class="d-t" x="360" y="275" text-anchor="middle">Check the trace</text>
+<text class="d-s" x="360" y="291" text-anchor="middle">which tools did it call?</text>
+<path class="d-line" d="M360,300 V313" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="252" y="316" width="216" height="44" rx="8"/>
+<text class="d-t" x="360" y="335" text-anchor="middle">Change task or tools</text>
+<text class="d-s" x="360" y="351" text-anchor="middle">retrieval_tools, wiring</text>
+<rect class="d-err" x="488" y="86" width="216" height="36" rx="18"/>
+<text class="d-t" x="596" y="109" text-anchor="middle">Error</text>
+<path class="d-line" d="M596,122 V133" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="488" y="136" width="216" height="44" rx="8"/>
+<text class="d-t" x="596" y="155" text-anchor="middle">Error box on the run</text>
+<text class="d-s" x="596" y="171" text-anchor="middle">the message per scenario</text>
+<path class="d-line" d="M596,180 V193" marker-end="url(#investigate-a)"/>
+<rect class="d-box" x="488" y="196" width="216" height="44" rx="8"/>
+<text class="d-t" x="596" y="215" text-anchor="middle">Fix the setup</text>
+<text class="d-s" x="596" y="231" text-anchor="middle">agent running? endpoint, port?</text>
+<rect class="d-key" x="16" y="384" width="688" height="48" rx="8"/>
+<text class="d-t" x="360" y="404" text-anchor="middle">Run again and confirm</text>
+<text class="d-s" x="360" y="422" text-anchor="middle">agentsec replay report.json (does each finding still reproduce?), then Compare runs</text>
+<path class="d-line" d="M124,360 V380" marker-end="url(#investigate-a)"/>
+<path class="d-line" d="M360,360 V380" marker-end="url(#investigate-a)"/>
+<path class="d-line" d="M596,240 V380" marker-end="url(#investigate-a)"/>
+</svg>

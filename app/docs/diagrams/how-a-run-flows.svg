@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330" width="720" height="330">
+<defs><marker id="how-a-run-flows-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="d-box" x="16" y="24" width="150" height="72" rx="8"/>
+<text class="d-t" x="91" y="57" text-anchor="middle">Your policy</text>
+<text class="d-m" x="91" y="73" text-anchor="middle">agentsec.yaml</text>
+<rect class="d-key" x="204" y="16" width="236" height="88" rx="8"/>
+<text class="d-t" x="322" y="49" text-anchor="middle">AgentSec engine</text>
+<text class="d-s" x="322" y="65" text-anchor="middle">builds attack scenarios, plays the</text>
+<text class="d-s" x="322" y="81" text-anchor="middle">user, answers every tool call</text>
+<rect class="d-box" x="584" y="24" width="120" height="72" rx="8"/>
+<text class="d-t" x="644" y="49" text-anchor="middle">Your agent</text>
+<text class="d-s" x="644" y="65" text-anchor="middle">HTTP, Python,</text>
+<text class="d-s" x="644" y="81" text-anchor="middle">LangChain, MCP</text>
+<path class="d-line" d="M166,60 H200" marker-end="url(#how-a-run-flows-a)"/>
+<path class="d-line" d="M440,48 H580" marker-end="url(#how-a-run-flows-a)"/>
+<text class="d-s" x="512" y="40" text-anchor="middle">attacks, tool results</text>
+<path class="d-line" d="M584,74 H444" marker-end="url(#how-a-run-flows-a)"/>
+<text class="d-s" x="512" y="92" text-anchor="middle">replies, tool calls</text>
+<path class="d-line" d="M322,104 V122 H91 V140" marker-end="url(#how-a-run-flows-a)"/>
+<rect class="d-box" x="16" y="140" width="150" height="64" rx="8"/>
+<text class="d-t" x="91" y="169" text-anchor="middle">Trace</text>
+<text class="d-s" x="91" y="185" text-anchor="middle">every message and call</text>
+<rect class="d-box" x="196" y="140" width="160" height="64" rx="8"/>
+<text class="d-t" x="276" y="161" text-anchor="middle">Evaluators</text>
+<text class="d-s" x="276" y="177" text-anchor="middle">deterministic rules</text>
+<text class="d-s" x="276" y="193" text-anchor="middle">(+ optional judge)</text>
+<rect class="d-box" x="386" y="140" width="150" height="64" rx="8"/>
+<text class="d-t" x="461" y="161" text-anchor="middle">Findings</text>
+<text class="d-s" x="461" y="177" text-anchor="middle">and one verdict</text>
+<text class="d-s" x="461" y="193" text-anchor="middle">per scenario</text>
+<rect class="d-box" x="566" y="140" width="138" height="64" rx="8"/>
+<text class="d-t" x="635" y="161" text-anchor="middle">Reports</text>
+<text class="d-m" x="635" y="177" text-anchor="middle">report.json, .html</text>
+<text class="d-m" x="635" y="193" text-anchor="middle">summary.md, .sarif</text>
+<path class="d-line" d="M166,172 H192" marker-end="url(#how-a-run-flows-a)"/>
+<path class="d-line" d="M356,172 H382" marker-end="url(#how-a-run-flows-a)"/>
+<path class="d-line" d="M536,172 H562" marker-end="url(#how-a-run-flows-a)"/>
+<path class="d-line" d="M635,204 V232 H111 V254" marker-end="url(#how-a-run-flows-a)"/>
+<path class="d-line" d="M371,232 V254" marker-end="url(#how-a-run-flows-a)"/>
+<path class="d-line" d="M635,232 V254" marker-end="url(#how-a-run-flows-a)"/>
+<rect class="d-box" x="16" y="254" width="190" height="64" rx="8"/>
+<text class="d-t" x="111" y="275" text-anchor="middle">Terminal and CI</text>
+<text class="d-s" x="111" y="291" text-anchor="middle">exit code, SARIF,</text>
+<text class="d-s" x="111" y="307" text-anchor="middle">pull-request comment</text>
+<rect class="d-box" x="266" y="254" width="210" height="64" rx="8"/>
+<text class="d-t" x="371" y="283" text-anchor="middle">Local dashboard</text>
+<text class="d-m" x="371" y="299" text-anchor="middle">agentsec dashboard</text>
+<rect class="d-key" x="534" y="254" width="170" height="64" rx="8"/>
+<text class="d-t" x="619" y="275" text-anchor="middle">Hosted dashboard</text>
+<text class="d-s" x="619" y="291" text-anchor="middle">via agentsec upload:</text>
+<text class="d-s" x="619" y="307" text-anchor="middle">history, compare, share</text>
+</svg>
