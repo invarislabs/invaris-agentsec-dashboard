@@ -61,6 +61,50 @@
     });
   });
 
+  /* ---------------------------------------------------------------- screenshots: click to enlarge */
+  // Without JavaScript the link simply opens the image. With it, the image opens in a dialog over the page
+  // (Escape, the Close button or a click closes it), using whichever theme's picture is showing.
+  var zoom = null;
+  function openZoom(link) {
+    var imgs = Array.prototype.slice.call(link.querySelectorAll("img"));
+    var shown = imgs.filter(function (i) { return i.offsetParent !== null; })[0] || imgs[0];
+    if (!shown) return false;
+    if (!zoom) {
+      zoom = document.createElement("dialog");
+      zoom.className = "dx-lightbox";
+      zoom.setAttribute("aria-label", "Enlarged screenshot");
+      var close = document.createElement("button");
+      close.type = "button";
+      close.className = "btn small dx-lightbox-close";
+      close.textContent = "Close";
+      close.addEventListener("click", function () { zoom.close(); });
+      var big = document.createElement("img");
+      var cap = document.createElement("p");
+      cap.className = "dx-lightbox-cap";
+      zoom.appendChild(close);
+      zoom.appendChild(big);
+      zoom.appendChild(cap);
+      zoom.addEventListener("click", function (e) { if (e.target === zoom || e.target === big) zoom.close(); });
+      document.body.appendChild(zoom);
+    }
+    var img = zoom.querySelector("img");
+    img.src = shown.currentSrc || shown.src;
+    img.alt = shown.alt;
+    var fc = link.parentNode.querySelector("figcaption");
+    zoom.querySelector(".dx-lightbox-cap").textContent = fc ? fc.textContent : "";
+    zoom.showModal();
+    zoom.querySelector("button").focus();
+    return true;
+  }
+  if (typeof HTMLDialogElement === "function") {
+    Array.prototype.forEach.call(document.querySelectorAll("a.dx-zoom"), function (a) {
+      a.addEventListener("click", function (e) {
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (openZoom(a)) e.preventDefault();
+      });
+    });
+  }
+
   /* ---------------------------------------------------------------- "On this page" highlight */
   var tocLinks = Array.prototype.slice.call(document.querySelectorAll(".dx-toc a"));
   if (tocLinks.length && "IntersectionObserver" in window) {
