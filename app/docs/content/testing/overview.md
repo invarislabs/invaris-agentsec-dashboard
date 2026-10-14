@@ -41,6 +41,11 @@ in how AgentSec reaches your agent and where the result goes.
 | History, sharing and comparison across runs | Upload to the hosted dashboard | [Uploading to the dashboard](/docs/testing/upload) |
 | Browse reports on your machine | `agentsec dashboard` | [Local dashboard](/docs/guide/local-dashboard) |
 
+:::diagram how-a-run-flows
+alt: Diagram: the policy drives the AgentSec engine, which sends attacks and simulated tool results to your agent and records its replies and tool calls. The trace goes through evaluators to findings and one verdict per scenario, written as reports that reach the terminal and CI, the local dashboard, or the hosted dashboard through agentsec upload.
+Every route starts from the same run and the same reports.
+:::
+
 ## A typical progression
 
 1. **Local, by hand.** `agentsec init`, point the policy at your agent, `agentsec test`, read the findings in

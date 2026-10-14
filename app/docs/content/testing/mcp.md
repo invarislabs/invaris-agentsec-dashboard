@@ -74,6 +74,11 @@ Report written to .agentsec/mcp-report.json
 
 The clean mode prints `No findings. Static checks only cover known patterns; this is not proof the server is safe.`
 
+:::figure mcp-overview
+alt: The overview of an MCP scan of the demo server in poisoned mode: “13 findings across 10 of 10 definitions.”, counts of 8 tools, 1 resource and 1 prompt, a severity bar, the definitions table with descriptions shown as the server sent them, and OWASP categories led by ASI04.
+The poisoned scan's `mcp-report.json`, uploaded to the dashboard.
+:::
+
 ### What it checks
 
 | Rule | Severity | Meaning |
