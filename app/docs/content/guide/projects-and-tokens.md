@@ -26,11 +26,23 @@ After signing in you land on **Projects**, which lists every project you are a m
 
 Select a row to open the project. The header also shows how many projects you have and your plan.
 
+:::figure projects
+alt: The Projects page listing three projects, support-agent, email-assistant and mcp-servers, each with its slug, number of runs, latest upload and the latest run's severity strip and summary.
+Each project's latest run, at a glance: soft green for no findings, yellow hatching for no findings but some inconclusive scenarios, coloured segments for findings by severity.
+:::
+
+
 ### Create a project
 
 Type a name (up to 120 characters, for example `support-agent`) and select **Create project**. The slug is made
 from the name: lowercase letters, digits and dashes, cut to 40 characters, then `-2`, `-3`... appended if it is
 already taken. You become the project's **owner**.
+
+:::figure projects-empty
+alt: The Projects page of a new account: “Create your first project” with a project name field and a Create project button.
+A new account starts here. Once you have projects, the same form is under **New project**, below the list.
+:::
+
 
 If you are at your plan's limit you get `the Free plan allows 10 projects`. Delete a project you no longer need,
 or raise the limit if you run the dashboard yourself (`FREE_MAX_PROJECTS`, see
@@ -56,6 +68,12 @@ There are two places:
 The new token appears with **Copy it now; it will not be shown again.** Store it as a secret straight away:
 as a CI secret named `AGENTSEC_TOKEN`, or in your shell with `export AGENTSEC_TOKEN=asp_...`. If you lose it,
 create a new one and revoke the old one.
+
+:::figure token-created
+alt: Project settings, Upload tokens: a notice reading “New token “Local testing”. Copy it now; it will not be shown again.” above the token and a Copy button, then a table of two tokens with their first characters, creation time, last use and a Revoke button.
+A token just created in **Settings > Upload tokens** (masked in this picture). Afterwards the table only ever shows its first 12 characters.
+:::
+
 
 > [!WARNING]
 > Never paste a token into a command line argument or a file in your repository. `agentsec upload` only reads
@@ -88,6 +106,12 @@ Only active tokens are listed. With 10 active tokens (the Free plan default) a n
 | Largest report | The largest accepted report, uncompressed |
 | Tokens per project | Active tokens allowed at once |
 | Team members | "Not yet; planned". Projects have a single member today |
+
+:::figure project-settings-plan
+alt: The Plan panel of project settings: Free (free during launch), run retention 90 days, the newest 500 runs kept, largest report 25 MB, 10 tokens per project, team members not yet.
+The Plan panel with the Free plan's defaults.
+:::
+
 
 **Project.** Rename the project (the slug does not change), or delete it. Deleting removes the project, its tokens
 and all of its runs, and cannot be undone. To confirm, type the project's slug exactly; otherwise you see

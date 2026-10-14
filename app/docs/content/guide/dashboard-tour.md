@@ -9,15 +9,10 @@ The hosted dashboard keeps every AgentSec report you upload, organised by projec
 views as the local `agentsec dashboard`, plus history across runs and comparisons in the browser. It never
 runs tests itself and never contacts your agent: it only shows what the uploaded `report.json` files record.
 
-```diagram title="How reports reach the dashboard"
- your machine or CI                                   hosted dashboard
- ─────────────────                                    ────────────────
- agentsec test  ──▶ .agentsec/report.json
-                         │
- agentsec upload  ───────┴──▶ POST /api/v1/reports ──▶ project ──▶ runs, history, compare
- (or the GitHub Action,       Authorization: Bearer asp_...
-  dashboard-url input)
-```
+:::diagram report-to-dashboard
+alt: Diagram: on your machine or in CI, agentsec test writes .agentsec/report.json, and agentsec upload or the GitHub Action sends it over HTTPS with a Bearer upload token. The hosted dashboard checks the token, reads the body within the plan's size limit after decompression, checks, summarises and stores the report, trims the project to its plan, and the run appears in the project.
+How reports reach the dashboard. It never runs tests or contacts your agent; it stores and shows the reports you upload.
+:::
 
 ## Signing in
 
@@ -27,6 +22,12 @@ Open the dashboard's URL. The sign-in page offers:
   GitHub access token is used once to read your profile and then discarded.
 - **Development sign-in (AGENTSEC_DEV_LOGIN is on)**: only on servers started in development mode. Type any
   username made of letters, digits and dashes. Never enabled in production (the server refuses to start).
+
+:::figure signin
+alt: The AgentSec sign-in page: the heading “Sign in to your security dashboard”, a short description and a “Continue with GitHub” button, with links to the documentation and the Quickstart.
+The sign-in page of a server with GitHub sign-in, as production runs it.
+:::
+
 
 Messages you may see:
 
@@ -42,6 +43,12 @@ Sessions last 14 days by default (`SESSION_DAYS`). **Sign out** is at the bottom
 
 The page has a sidebar on the left and the current view on the right. On narrow screens the sidebar is hidden
 behind the **Menu** button in the top bar.
+
+:::figure dashboard-layout
+alt: A run page with seven numbered markers: 1, the documentation and theme buttons; 2, the project selector; 3, the project's views (Runs and history, Compare runs, Settings); 4, the run list grouped by agent; 5, your account and Sign out; 6, the run's tabs; 7, the Help for this tab link.
+The layout, here on a run's page: **1** documentation and theme switch, **2** project selector, **3** the project's views, **4** its runs grouped by agent, each with a summary and a severity strip, **5** your account, **6** the run's tabs, **7** help for the current tab.
+:::
+
 
 **Top of the sidebar.** The AgentSec logo (back to all projects), a book icon titled **Documentation** that opens
 these docs, and the theme switch, which toggles between light and dark mode. Your choice is remembered in this
@@ -84,6 +91,12 @@ When a run arrives, a notice appears in the corner, for example
 commit (or "uploaded" and its date when none were recorded). It has **Open** and **Dismiss** buttons and closes by
 itself after 12 seconds; if several runs arrive at once it names the newest. The project page and the comparison view
 refresh by themselves.
+
+:::figure upload-toast
+alt: A notice in the corner of a project page reading “New run uploaded: vulnerable-rag-agent (hardened main)” with Open and Dismiss buttons.
+A run arriving while its project is open. It has a label and a branch but no commit, so the notice shows those two.
+:::
+
 
 ## Links you can share
 
