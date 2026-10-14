@@ -255,6 +255,10 @@ Issues and pull requests are welcome. Run the tests (above) before opening a pul
 problems privately as described in the engine's
 [SECURITY.md](https://github.com/invarislabs/invaris-agentsec/blob/main/SECURITY.md), not in a public issue.
 
+By contributing you agree that your contribution is licensed under the Apache License 2.0. On your first pull
+request, the CLA Assistant bot asks you to confirm the [Contributor License Agreement](CLA.md) by replying with
+the comment it quotes. You only need to do this once; the signature is recorded in `signatures/cla.json`.
+
 ## License
 
 Apache License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). "Invaris" and "AgentSec" are trademarks of
