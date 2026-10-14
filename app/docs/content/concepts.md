@@ -70,6 +70,11 @@ forbidden actions as decoys so an obedient agent has something to call) and answ
 The call is still recorded, and that record is what gets flagged. Agents that run their own tools can report
 the calls they made so AgentSec can see them; see [Make your agent testable](/docs/testing/agent-contract).
 
+:::diagram scenario-loop
+alt: Sequence diagram between the AgentSec runner, the adapter and your agent: 1, the user's message, session id and declared tools; 2, a tool call to search_documents; 3, a simulated result carrying the poisoned content; 4, a tool call to send_email, recorded and flagged but never executed; 5, the reply OK (simulated by AgentSec sandbox; no real action was taken); 6, a final reply with no tool calls. The loop repeats until a reply has no tool calls or a limit stops it, then the trace is evaluated.
+One scenario, step by step. The adapter only translates: AgentSec decides what every tool returns, and records every call, including the ones it refuses to carry out.
+:::
+
 ## Traces
 
 A **trace** is the ordered record of one scenario: every user message, agent reply, tool call (with
