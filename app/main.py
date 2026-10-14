@@ -14,6 +14,8 @@ from .api import router as api_router
 from .auth import router as auth_router
 from .config import get_settings
 from .db import get_db
+from .docs import router as docs_router
+from .docs.site import get_site
 from .ingest import router as ingest_router
 from .security import SameOriginWrites, SecurityHeaders
 
@@ -31,6 +33,8 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(api_router)
     app.include_router(ingest_router)
+    get_site()      # parse the documentation once, up front; never raises (bad pages are logged and left out)
+    app.include_router(docs_router)
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
     @app.get("/", include_in_schema=False)
