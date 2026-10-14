@@ -10,6 +10,12 @@ order: 7
 The **Policy** tab shows the policy exactly as it was run, read from the report (never from your current
 `agentsec.yaml`). Secret values are never in a report; only how many there were.
 
+:::figure policy-tab
+alt: The Policy tab: the agent (name, endpoint, model, declared tools, streaming, timeout, API key env), the limits, the tools with their policy (search_documents and create_draft allowed, send_email, reveal_credentials and execute_payment forbidden), and the tests, with the categories, 1 configured secret and the policy file hash.
+The policy the Quickstart's vulnerable agent was tested with, as recorded in its report.
+:::
+
+
 **Agent**
 
 | Row | Meaning |
@@ -70,11 +76,21 @@ An MCP scan's page has three tabs: **Overview**, **Findings** and **Definitions*
   it starts the server. Pin the definitions with `--pin-write` and compare later scans with `--pin` to catch
   definitions that change after you approved them ("rug pulls").
 
+:::figure mcp-overview
+alt: The overview of an MCP scan of the demo server in poisoned mode: “13 findings across 10 of 10 definitions.”, counts of 8 tools, 1 resource and 1 prompt, a severity bar, the definitions table with descriptions shown as the server sent them, and OWASP categories led by ASI04.
+A scan of the engine's demo MCP server in poisoned mode. Hidden characters are shown as U+200B and similar tags.
+:::
+
 ### Definitions tab
 
 Each definition with its kind, its **Name** (resources only, which have a URI and a name), its
 **Description as the server sends it** ("No description." when it has none, "No longer listed by the server." for
 one that disappeared since the pin) and the **Findings** against it ("No check matched this definition.").
+
+:::figure mcp-definitions
+alt: The Definitions tab of an MCP scan: a list of the 10 definitions on the left and, on the right, the selected definition's description as the server sends it and the findings against it.
+The demo server's poisoned `add_numbers` tool: its description tells the model to read a private key and keep it from the user.
+:::
 
 ### Findings
 
