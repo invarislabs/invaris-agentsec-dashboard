@@ -18,6 +18,7 @@ from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
 
 from .. import __version__
+from .assets import DIAGRAMS, IMAGES, Assets, load_assets
 from .markdown import Heading, parse_front_matter, render
 
 log = logging.getLogger("app.docs")
@@ -56,6 +57,7 @@ class Page:
     headings: List[Heading]
     sections: List[Tuple[str, str, str]]
     links: List[str] = field(default_factory=list)
+    figures: List[str] = field(default_factory=list)
 
     @property
     def url(self) -> str:
@@ -68,6 +70,7 @@ class Site:
     by_slug: Dict[str, Page]
     # Pages that could not be loaded ("path: reason"). Production serves the rest; tests load with strict=True.
     errors: List[str] = field(default_factory=list)
+    assets: Assets = field(default_factory=Assets)
 
     def neighbours(self, page: Page) -> Tuple[Optional[Page], Optional[Page]]:
         i = self.pages.index(page)
@@ -87,14 +90,18 @@ class Site:
         return out
 
 
-def _load_page(rel: str, root: str = CONTENT) -> Page:
+def _load_page(rel: str, root: str = CONTENT, assets: Optional[Assets] = None, strict: bool = True,
+               problems: Optional[List[str]] = None) -> Page:
     with open(os.path.join(root, rel), encoding="utf-8") as fh:
         raw = fh.read()
+    found: List[str] = []
     try:
         meta, body = parse_front_matter(raw)
-        rendered = render(body)
+        rendered = render(body, assets if assets is not None else Assets(), strict=strict, problems=found)
     except ValueError as exc:
         raise DocsError("%s: %s" % (rel, exc)) from exc
+    if problems is not None:
+        problems.extend("%s: %s" % (rel, f) for f in found)
     for key in ("title", "description", "section"):
         if not meta.get(key):
             raise DocsError("%s: front matter needs `%s`" % (rel, key))
@@ -108,22 +115,28 @@ def _load_page(rel: str, root: str = CONTENT) -> Page:
     return Page(slug=slug, path=rel.replace(os.sep, "/"), title=meta["title"],
                 nav_title=meta.get("nav_title") or meta["title"], description=meta["description"],
                 section=meta["section"], order=int(meta.get("order", "100")), html=rendered.html,
-                headings=rendered.headings, sections=rendered.sections, links=rendered.links)
+                headings=rendered.headings, sections=rendered.sections, links=rendered.links,
+                figures=rendered.figures)
 
 
-def load_site(root: str = CONTENT, strict: bool = False) -> Site:
+def load_site(root: str = CONTENT, strict: bool = False, images: str = IMAGES, diagrams: str = DIAGRAMS) -> Site:
     """Every page under `root`. With strict=True (the test suite) the first malformed page raises DocsError; otherwise
     (the running dashboard) malformed pages are left out and listed in `Site.errors`, so one bad page can never take
-    the documentation, let alone the dashboard, offline."""
+    the documentation, let alone the dashboard, offline. A missing or damaged picture never takes its page out: the
+    figure is shown without it and the problem is listed in `Site.errors`."""
     pages: List[Page] = []
     errors: List[str] = []
+    try:
+        assets = load_assets(images, diagrams, errors=None if strict else errors)
+    except ValueError as exc:
+        raise DocsError(str(exc)) from exc
     for dirpath, _dirs, files in sorted(os.walk(root)):
         for name in sorted(files):
             if not name.endswith(".md"):
                 continue
             rel = os.path.relpath(os.path.join(dirpath, name), root)
             try:
-                pages.append(_load_page(rel, root))
+                pages.append(_load_page(rel, root, assets, strict, errors))
             except (DocsError, OSError, UnicodeDecodeError, ValueError) as exc:
                 if strict:
                     raise DocsError(str(exc)) if not isinstance(exc, DocsError) else exc
@@ -139,7 +152,7 @@ def load_site(root: str = CONTENT, strict: bool = False) -> Site:
             errors.append(msg)
             continue
         by_slug[p.slug] = p
-    return Site([p for p in pages if by_slug.get(p.slug) is p], by_slug, errors)
+    return Site([p for p in pages if by_slug.get(p.slug) is p], by_slug, errors, assets)
 
 
 @lru_cache(maxsize=1)
