@@ -144,6 +144,57 @@ kbd{font-family:var(--mono);font-size:11px;line-height:1;color:var(--ink-2);back
 .dx-card strong{font-size:14.5px}
 .dx-card span{font-size:13px;color:var(--ink-2);line-height:1.5}
 
+/* figures: screenshots (a light and a dark picture; only the one for the current theme is shown and downloaded)
+   and inline SVG diagrams coloured with the theme tokens */
+.dx-figure{margin:6px 0 26px}
+.dx-figure figcaption{margin-top:10px;font-size:13.5px;line-height:1.55;color:var(--ink-2);max-width:68ch}
+.dx-zoom{display:inline-block;max-width:100%;vertical-align:top;position:relative;line-height:0;border:1px solid var(--line);border-radius:10px;
+  overflow:hidden;background:var(--canvas);box-shadow:var(--shadow);cursor:zoom-in;text-decoration:none!important}
+.dx-zoom:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.dx-shot img{display:block;max-width:100%;height:auto}
+.dx-shot .dx-dark{display:none}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .dx-shot .dx-light{display:none}
+  :root:not([data-theme="light"]) .dx-shot .dx-dark{display:block}
+}
+:root[data-theme="dark"] .dx-shot .dx-light{display:none}
+:root[data-theme="dark"] .dx-shot .dx-dark{display:block}
+.dx-zoom-hint{position:absolute;right:8px;bottom:8px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font:500 11.5px/1 var(--sans);
+  color:var(--ink-2);background:color-mix(in srgb,var(--panel) 92%,transparent);opacity:0;transition:opacity .15s}
+.dx-zoom:hover .dx-zoom-hint,.dx-zoom:focus-visible .dx-zoom-hint{opacity:1}
+.dx-svg{padding:18px 16px;border:1px solid var(--line);border-radius:10px;background:var(--canvas);overflow-x:auto}
+.dx-svg svg{display:block;width:100%;height:auto;min-width:600px;margin:0 auto}
+.dx-missing-note{margin:0;padding:16px;border:1px dashed var(--line-2);border-radius:10px;color:var(--ink-3);font-size:13px}
+/* diagram parts (classes used in app/docs/diagrams/*.svg) */
+.d-box{fill:var(--panel);stroke:var(--line-2);stroke-width:1}
+.d-soft{fill:var(--sunken);stroke:none}
+.d-key{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2}
+.d-ok{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.2}
+.d-bad{fill:color-mix(in srgb,var(--critical) 12%,var(--panel));stroke:var(--critical);stroke-width:1.2}
+.d-err{fill:var(--err-soft);stroke:var(--err);stroke-width:1.2}
+.d-warn{fill:color-mix(in srgb,var(--medium) 14%,var(--panel));stroke:var(--medium);stroke-width:1.2}
+.d-muted{fill:color-mix(in srgb,var(--nobs) 14%,var(--panel));stroke:var(--nobs);stroke-width:1.2}
+.d-group{fill:none;stroke:var(--line-2);stroke-width:1;stroke-dasharray:4 4}
+.d-line{fill:none;stroke:var(--ink-3);stroke-width:1.4}
+.d-line.dash{stroke-dasharray:4 3}
+.d-arrow{fill:var(--ink-3)}
+.d-t{fill:var(--ink);font:600 13px var(--sans)}
+.d-s{fill:var(--ink-2);font:400 12px var(--sans)}
+.d-x{fill:var(--ink-3);font:500 11px var(--sans);letter-spacing:.04em;text-transform:uppercase}
+.d-m{fill:var(--ink-2);font:400 11.5px var(--mono)}
+.d-yes{fill:var(--ok);font:600 11.5px var(--sans)}
+.d-no{fill:var(--ink-3);font:600 11.5px var(--sans)}
+.d-num{fill:var(--accent);font:700 12px var(--sans)}
+.d-numc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1}
+
+/* enlarged screenshot */
+.dx-lightbox{padding:0;border:0;background:transparent;max-width:96vw;max-height:96vh;overflow:visible}
+.dx-lightbox::backdrop{background:rgba(8,10,14,.8)}
+.dx-lightbox img{display:block;max-width:96vw;max-height:84vh;width:auto;height:auto;border-radius:8px;background:var(--panel);
+  box-shadow:0 12px 48px rgba(0,0,0,.45);cursor:zoom-out}
+.dx-lightbox-cap{margin:10px 0 0;max-width:80ch;color:#e5e7eb;font-size:13px;line-height:1.5}
+.dx-lightbox-close{position:absolute;right:10px;top:10px;box-shadow:var(--shadow)}
+
 /* page footer */
 .dx-page-foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:13px}
 .dx-page-foot a{color:var(--ink-3)}
