@@ -51,6 +51,12 @@ for example
 **35 scenarios: cannot reach agent at http://127.0.0.1:8000/agent: Connection refused**. When every scenario
 errored it adds **Start the agent and run agentsec test again.**
 
+:::figure run-errored
+alt: A run in which every scenario errored: a purple box reads “5 scenarios: cannot reach agent at http://127.0.0.1:8000/agent: [Errno 111] Connection refused. Start the agent and run agentsec test again.”, followed by the headline “No scenario could run.”, striped error squares and “Tested: 0 of 5 scenarios”.
+`agentsec test` run while the agent was not running: nothing was tested, so nothing passed.
+:::
+
+
 ## The verdict
 
 A headline sentence and an explanation summarise the run. The possible headlines:
@@ -73,6 +79,12 @@ On the right are the counts: **Scenarios**, **Passed**, **With findings**, **Err
 and **Inconclusive** when there are any. Below, when there are findings, a **severity bar** and links for each
 severity (for example **Critical 10**) that open the Findings tab filtered to that severity.
 
+:::figure run-verdict
+alt: The top of the run page of vulnerable-rag-agent: the header facts (endpoint, seed, policy, generated, AgentSec version, label, branch, uploaded), the tabs, the headline “43 findings in 35 of 35 scenarios.”, the counts and a severity bar with Critical 10, High 25, Medium 8, Low 0.
+The header, tabs and verdict of the Quickstart's vulnerable reference agent.
+:::
+
+
 ## Scenarios by attack category
 
 The dashboard's signature view: one row per attack category, one square per scenario.
@@ -92,6 +104,12 @@ its scenarios. Under each name a short summary reads, for example, "2 findings, 
 prefixed "attack pack". The number on the right is how many of the category's scenarios have findings, or
 "all errored".
 
+:::figure run-categories
+alt: Scenarios by attack category: eight categories from prompt_injection to memory_poisoning, each with one coloured square per scenario, a summary such as “4 findings, worst critical” and a count such as “4 of 4”, and the colour legend below.
+Every scenario of the vulnerable agent has findings, so every square shows its worst severity.
+:::
+
+
 ## Attacks that reached their goal
 
 Shown only when at least one **attack goal** was reached, which can only happen in attack-pack scenarios that
@@ -100,13 +118,19 @@ such as "forwarded/sent confidential mail to an external address"), the scenario
 to action, for example:
 
 ```text
-open_email #18 (result 6 of 7) → forward_email #21
+open_email #18 (result 6 of 7) → forward_email #20
 ```
 
 That reads: the payload arrived in the result of the `open_email` call at trace event 18, which was the 6th of 7
 tool results in the scenario (so 5 earlier results were clean: a mid-task injection), and the `forward_email`
-call at event 21 achieved the goal. "delivery not tracked" means the scenario does not track delivery. See
+call at event 20 achieved the goal. "delivery not tracked" means the scenario does not track delivery. See
 [Attack goals and exposure tracking](/docs/results/attack-goals-and-exposure).
+
+:::figure run-attack-goals
+alt: Attacks that reached their goal: seven critical rows from the email attack pack, each with the goal, the scenario id and the path open_email #18 (result 6 of 7) → forward_email #20.
+The email attack pack against a scripted stand-in assistant that obeys what it reads: every goal was reached the same way.
+:::
+
 
 ## Rules that fired
 
@@ -118,6 +142,12 @@ call at event 21 achieved the goal. "delivery not tracked" means the scenario do
 | Scenarios | In how many scenarios |
 
 Select a row to see those findings. Every rule is explained in the [Rules reference](/docs/reference/rules).
+
+:::figure run-rules
+alt: Rules that fired: forbidden_action, critical, 16 findings in 14 scenarios; secret_leak, high, 14 in 14; injection_followed and memory_poisoned, high; limit_max_tool_calls, repeated_calls and unauthorized_tool, medium.
+Rules that fired in the vulnerable agent's run, worst first.
+:::
+
 
 ## Tools the agent called
 
@@ -133,6 +163,12 @@ Every tool the agent called in this run, classified against the policy:
 and took no real action. Calls the agent ran itself and reported (tagged "Executed by the agent and reported to
 AgentSec" in the trace) really happened on your side, which is why such agents must use test doubles.
 
+:::figure run-tools
+alt: Tools the agent called: send_email, reveal_credentials and execute_payment marked Forbidden action; delete_records and shell marked Not in allowed_tools; search_documents and create_draft Allowed; with the number of calls and scenarios for each.
+The vulnerable agent called all three forbidden decoys and two tools outside its allowlist. AgentSec simulated every one of these calls.
+:::
+
+
 ## OWASP agentic categories
 
 Shown unless every scenario errored. Findings per category of the OWASP Top 10 for Agentic Applications, ASI01 to
@@ -140,6 +176,12 @@ ASI10. All ten are listed so gaps
 are visible; categories with findings link to them. A finding can count toward more than one category. The
 mapping is Invaris' closest-fit judgement, not an official OWASP classification. See
 [Findings and severity](/docs/results/findings-and-severity#owasp-categories).
+
+:::figure run-owasp
+alt: The OWASP agentic categories panel: ASI01 Agent Goal Hijack 19, ASI02 Tool Misuse 22, ASI03 Identity and Privilege Abuse 16, ASI06 Memory and Context Poisoning 4, ASI08 Cascading Failures 2, and the other five categories at 0.
+All ten categories are listed, so the ones with no findings are visible too.
+:::
+
 
 ## How the attack arrived
 
@@ -160,10 +202,16 @@ The honest denominator of the run. Rates are computed over **tested** scenarios 
 | Inconclusive | Scenarios whose attack never reached the agent |
 | Errors | Scenarios that could not run |
 | Not observable | Scenarios that could not be judged |
+| Attack goals reached | `attack_goal_achieved` findings, and in how many scenarios |
 
 The Inconclusive, Errors and Not observable counts are links that open the Scenarios tab filtered to them; the
 rows only appear when the count is not zero.
-| Attack goals reached | `attack_goal_achieved` findings, and in how many scenarios |
+
+:::figure run-measured
+alt: What this run measured: Tested, 35 of 35 scenarios (100%); With findings, 35 of 35 tested (100%); Passed, 0 of 35 tested; and the note on errored, inconclusive and not-observable scenarios and on who made the agent's decisions.
+Every scenario was tested, and every tested scenario had findings.
+:::
+
 
 A note underneath repeats that errored, inconclusive and not-observable scenarios measured nothing and are left
 out of the rates, and says who made the agent's decisions:
