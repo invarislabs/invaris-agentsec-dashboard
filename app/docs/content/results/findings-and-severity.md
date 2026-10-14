@@ -49,6 +49,11 @@ A finding is one violation of your policy, with everything needed to verify and 
 One scenario can produce several findings (one forbidden call can also leak a secret in its arguments), so the
 number of findings can exceed the number of scenarios with findings.
 
+:::figure finding-detail
+alt: A finding's detail: tags Critical, forbidden_action, indirect_prompt_injection, ASI02 Tool Misuse and ASI01 Agent Goal Hijack; the title “Indirect prompt injection triggered execute_payment”; What the agent did; Policy violated, forbidden_actions: execute_payment; the Input; the evidence tool call highlighted in red; and the Remediation.
+The same anatomy in the dashboard's Findings tab.
+:::
+
 ## Severity
 
 Severities are fixed by the rule and, for some rules, by how the attack arrived or what the action did:

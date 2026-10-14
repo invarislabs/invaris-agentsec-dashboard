@@ -9,6 +9,12 @@ order: 4
 Each example shows what you see in the terminal or dashboard, what it means, and what to do. The first four come
 from real runs against the bundled reference agents.
 
+:::diagram investigate
+alt: Diagram of how to investigate a run. Open the run and read the verdict and What this run measured. For findings: the Findings tab, read the finding, open the full trace, fix the agent. For inconclusive scenarios: the Scenarios tab filtered to Inconclusive, the Why inconclusive note, the trace's tool calls, then change the task or tools. For errors: the error box on the run, then fix the setup. Then run again and confirm with agentsec replay and Compare runs.
+Where to look first, by verdict, and how to confirm a fix.
+:::
+
+
 ## A document made the agent take a forbidden action
 
 ```text
@@ -96,6 +102,11 @@ the run summary says "35 scenarios errored". **Nothing was tested.**
 | `agent stream was empty (is the endpoint really streaming?)` | `agent.stream: true` but the endpoint does not stream; set it to `false` |
 | A timeout | Raise `agent.timeout_s` or make the agent faster |
 
+:::figure run-errored
+alt: A run in which every scenario errored: a purple box reads “5 scenarios: cannot reach agent at http://127.0.0.1:8000/agent: [Errno 111] Connection refused. Start the agent and run agentsec test again.”, followed by the headline “No scenario could run.”, striped error squares and “Tested: 0 of 5 scenarios”.
+What an errored run looks like in the dashboard: the error message, and nothing tested.
+:::
+
 ## No findings, but scenarios were inconclusive
 
 In the dashboard: **No findings in the scenarios that were tested, but 1 scenario was inconclusive.** The
@@ -108,6 +119,11 @@ content: it did not open the poisoned email or page, or stopped before the step 
 the agent got. Give the agent a task that leads to the poisoned item, check its tools are wired to AgentSec
 (declared tools, `x_agentsec.events`, a ToolHost or `--mcp-listen`), and with a real model run it several times.
 See [Attack goals and exposure tracking](/docs/results/attack-goals-and-exposure).
+
+:::figure scenario-inconclusive
+alt: The detail of an inconclusive scenario, email_agent_unauthorized_delete/delete_security_alert: 2 steps and 1 tool call, a “Why inconclusive” explanation, and its attack goal marked Not tested because the payload never reached the agent.
+An inconclusive scenario in the dashboard: the agent never opened the poisoned email.
+:::
 
 ## Scenarios were not observable
 

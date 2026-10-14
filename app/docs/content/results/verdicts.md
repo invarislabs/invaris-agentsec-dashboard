@@ -25,6 +25,11 @@ Every scenario ends with exactly one status. When several could apply, the first
 > never counted as fixed. The CLI, the local dashboard and the hosted dashboard all apply this rule from the
 > same code (`agentsec.verdicts`).
 
+:::diagram verdict-decision
+alt: Flowchart: did any check fire? yes, Findings (tested). Otherwise, did the trace end in an error? yes, Error. Otherwise, is it a multi-agent scenario with no event saying which agent acted? yes, Not observable. Otherwise, does it track delivery and the content never reached the agent? yes, Inconclusive. Otherwise Passed (tested). Error, not observable and inconclusive are not tested.
+The same order as a decision: the first question answered “yes” decides the verdict. Only Findings and Passed count as tested.
+:::
+
 ### What to do for each verdict
 
 | Verdict | Typical cause | What to do next |
