@@ -353,6 +353,8 @@ def test_every_page_is_packaged():
     assert pages and pages <= packaged
     for asset in ("docs.css", "docs.js", "theme.js"):
         assert (app_dir / "static" / asset).resolve() in packaged
+    pictures = {p.resolve() for d in ("images", "diagrams") for p in (app_dir / "docs" / d).iterdir()}
+    assert pictures and pictures <= packaged
 
 
 # ----------------------------------------------------------------------------------------------- dashboard <-> docs
@@ -399,3 +401,113 @@ def test_docs_name_the_engine_and_dashboard_versions_they_describe():
     assert "invaris-agentsec==%s" % pinned in ci
     intro = source("")
     assert "AgentSec %s" % pinned in intro and "dashboard %s" % dashboard_version in intro
+
+
+# ----------------------------------------------------------------------------------------------- screenshots and diagrams
+
+def _used(kind):
+    return {f.split(":", 1)[1] for p in SITE.pages for f in p.figures if f.startswith(kind + ":")}
+
+
+def test_every_picture_exists_in_both_themes_and_is_used():
+    """Each screenshot is a light and dark pair of the same size; no picture is shipped without a page using it."""
+    shots = {name.rsplit("-", 1)[0] for name in SITE.assets.images}
+    assert shots and shots == _used("figure")
+    assert set(SITE.assets.diagrams) and set(SITE.assets.diagrams) == _used("diagram")
+    for name in shots:
+        light, dark = SITE.assets.screenshot(name)
+        assert (light.width, light.height) == (dark.width, dark.height), name
+
+
+def test_pictures_stay_small():
+    """WebP, at most 1600 pixels wide (twice the docs column) and small enough not to slow pages down."""
+    total = 0
+    for img in SITE.assets.images.values():
+        size = Path(img.path).stat().st_size
+        total += size
+        assert img.width <= 1600 and size <= 200 * 1024, img.file
+    assert total <= 6 * 1024 * 1024
+    for name, svg in SITE.assets.diagrams.items():
+        assert len(svg) <= 30 * 1024, name
+
+
+def test_pictures_are_described_and_captioned(client):
+    """Every screenshot and diagram has a text alternative and a caption; the hidden theme's picture is lazy-loaded."""
+    seen = 0
+    for page in SITE.pages:
+        if not page.figures:
+            continue
+        html = client.get(page.url).text
+        for fig in re.findall(r'<figure class="dx-figure[^"]*">(.*?)</figure>', html, re.S):
+            seen += 1
+            assert "<figcaption>" in fig and re.search(r"<figcaption>\s*\S", fig), page.url
+            for alt in re.findall(r'<img [^>]*alt="([^"]*)"', fig) + re.findall(r'role="img" aria-label="([^"]*)"', fig):
+                assert len(alt) >= 12, page.url
+            for img in re.findall(r"<img [^>]*>", fig):
+                assert 'loading="lazy"' in img and 'width="' in img and 'height="' in img, page.url
+    assert seen == sum(len(p.figures) for p in SITE.pages)
+
+
+def test_pictures_are_served_with_long_caching_and_nothing_else_is(client):
+    page = client.get("/docs/guide/run-overview").text
+    url = re.search(r'src="(/docs/img/[a-z0-9-]+-light\.webp\?v=[0-9a-f]+)"', page).group(1)
+    r = client.get(url)
+    assert r.status_code == 200 and r.headers["content-type"] == "image/webp"
+    assert r.headers["cache-control"] == "public, max-age=31536000, immutable"
+    assert "set-cookie" not in r.headers and r.content[:4] == b"RIFF"
+    assert client.get(url.split("?")[0]).headers["cache-control"] == "public, max-age=300"   # no version: brief
+    for bad in ("/docs/img/nope-light.webp", "/docs/img/..%2Fsite.py", "/docs/img/%2E%2E%2F%2E%2E%2Fconfig.py",
+                "/docs/img/run-verdict-light.png"):
+        assert client.get(bad).status_code == 404, bad
+
+
+def test_unsafe_diagrams_are_refused():
+    from app.docs.assets import clean_svg
+    ok = '<svg viewBox="0 0 10 10"><path class="d-line" d="M0,0 H5" marker-end="url(#x-a)"/></svg>'
+    assert clean_svg(ok, "x").startswith('<svg aria-hidden="true"')
+    for bad in ('<svg viewBox="0 0 1 1"><script>alert(1)</script></svg>',
+                '<svg viewBox="0 0 1 1" onload="alert(1)"></svg>',
+                '<svg viewBox="0 0 1 1"><rect style="fill:red"/></svg>',
+                '<svg viewBox="0 0 1 1"><a href="https://evil.example"><text>x</text></a></svg>',
+                '<svg viewBox="0 0 1 1"><image href="x.png"/></svg>',
+                '<svg viewBox="0 0 1 1"><foreignObject>x</foreignObject></svg>',
+                '<svg viewBox="0 0 1 1"><rect fill="url(https://evil.example/x)"/></svg>',
+                '<svg><rect/></svg>', '<div></div>'):
+        with pytest.raises(ValueError):
+            clean_svg(bad, "bad")
+
+
+def test_figure_blocks_need_alt_text_a_caption_and_a_known_picture():
+    assets = SITE.assets
+    name = sorted(_used("figure"))[0]
+    ok = markdown.render(":::figure %s\nalt: What the picture shows, in words.\nThe caption.\n:::" % name, assets)
+    assert 'class="dx-light"' in ok.html and 'class="dx-dark"' in ok.html and ok.figures == ["figure:" + name]
+    for bad in (":::figure %s\nThe caption only.\n:::" % name,                   # no alt line
+                ":::figure %s\nalt: short\nCaption.\n:::" % name,               # alt too short to describe anything
+                ":::figure %s\nalt: What the picture shows, in words.\n:::" % name,   # no caption
+                ":::figure %s\nalt: What the picture shows, in words.\nCaption." % name,  # never closed
+                ":::figure no-such-shot\nalt: What the picture shows, in words.\nCaption.\n:::",
+                ":::diagram no-such-diagram\nalt: What the picture shows, in words.\nCaption.\n:::",
+                ":::picture x\nalt: What the picture shows, in words.\nCaption.\n:::"):
+        with pytest.raises(ValueError):
+            markdown.render(bad, assets)
+
+
+def test_a_missing_picture_never_takes_its_page_down(tmp_path):
+    """Production keeps the page and shows the caption without the picture; strict loading (CI) refuses it."""
+    import shutil
+    from app.docs.site import DocsError
+    root, images = tmp_path / "content", tmp_path / "images"
+    shutil.copytree(CONTENT, root)
+    shutil.copytree(docs_site.IMAGES, images)
+    victim = sorted(_used("figure"))[0]
+    (images / (victim + "-dark.webp")).unlink()
+    (images / "Not A Valid Name.webp").write_bytes(b"x")
+    site = load_site(str(root), images=str(images))
+    assert len(site.pages) == len(SITE.pages)
+    assert any(victim in e for e in site.errors) and any("Not A Valid Name" in e for e in site.errors)
+    page = next(p for p in site.pages if "figure:" + victim in p.figures)
+    assert 'class="dx-figure dx-missing"' in page.html
+    with pytest.raises(DocsError):
+        load_site(str(root), strict=True, images=str(images))
+
