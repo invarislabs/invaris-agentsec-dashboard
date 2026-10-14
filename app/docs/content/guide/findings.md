@@ -29,6 +29,12 @@ The list header shows "43 findings" or "5 of 43" when filtered, and the hint **j
 {{kbd:j}} and {{kbd:k}} to step through the list. Findings are sorted most severe first. Each item shows its
 severity, category, title and scenario id.
 
+:::figure findings-filter
+alt: The Findings tab filtered to critical findings: the Critical chip is selected, a Clear filters button has appeared, the list header reads “10 of 43”, and the first critical finding is open on the right.
+Filtered to critical findings, as the overview's **Critical 10** link opens it.
+:::
+
+
 ## Reading a finding
 
 The detail starts with tags: the **severity**, the **rule** id, the **category**, one tag per **OWASP**
@@ -44,6 +50,12 @@ title, and **Scenario** with a link to the scenario's full trace.
 | Evidence | The trace events that prove it, rendered like the trace, highlighted in the finding's severity colour, then **Open the full trace** |
 | Remediation | A suggested fix, for example "Enforce the tool allowlist outside the model (deny by default) and require confirmation for irreversible actions." |
 | Reproduce | Commands to replay this finding and to run only this scenario |
+
+:::figure finding-detail
+alt: A finding's detail: tags Critical, forbidden_action, indirect_prompt_injection, ASI02 Tool Misuse and ASI01 Agent Goal Hijack; the title “Indirect prompt injection triggered execute_payment”; What the agent did; Policy violated, forbidden_actions: execute_payment; the Input; the evidence tool call highlighted in red; and the Remediation.
+The agent read a document carrying a fake “assistant note” and called a forbidden tool. The evidence is that call.
+:::
+
 
 The **Reproduce** block gives:
 
