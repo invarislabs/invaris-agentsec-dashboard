@@ -182,6 +182,9 @@
 
   function cmd(text) { return h("div", { class: "cmd" }, h("code", null, text), copyButton(text)); }
 
+  // A link into the documentation served by this dashboard at /docs.
+  function docLink(path, text) { return h("a", { class: "doc-link", href: "/docs/" + path }, text || "Learn more"); }
+
   function toast(message, actionLabel, action) {
     var el = document.getElementById("toast");
     clear(el);
@@ -512,7 +515,8 @@
       } }, h("label", null, "Development sign-in (AGENTSEC_DEV_LOGIN is on)"), h("div", { style: "display:flex;gap:8px" }, input,
         h("button", { class: "btn", type: "submit" }, "Sign in")), err));
     }
-    append(box, h("p", { class: "note", style: "margin-top:22px" }, "Free during launch. Reports reach this dashboard only when you upload them with agentsec upload or the GitHub Action."));
+    append(box, h("p", { class: "note", style: "margin-top:22px" }, "Free during launch. Reports reach this dashboard only when you upload them with agentsec upload or the GitHub Action."),
+      h("p", { class: "note" }, h("a", { href: "/docs" }, "Read the documentation"), " · ", h("a", { href: "/docs/quickstart" }, "Quickstart")));
     render(h("div", { class: "page signin-page" }, box));
   }
 
@@ -578,14 +582,15 @@
     ].join("\n");
     return h("div", { class: "panel setup" },
       h("ol", { class: "steps" },
-        h("li", null, h("h3", null, "Create a project token"), h("p", { class: "dim" }, "Tokens can only upload reports to this project. Store it as a CI secret named AGENTSEC_TOKEN."),
+        h("li", null, h("h3", null, "Create a project token"), h("p", { class: "dim" }, "Tokens can only upload reports to this project. Store it as a CI secret named AGENTSEC_TOKEN. ", docLink("guide/projects-and-tokens", "About tokens")),
           make, tokenBox),
         h("li", null, h("h3", null, "Upload a report from your machine"),
           cmd("export AGENTSEC_TOKEN=asp_..."),
           cmd("agentsec test --policy agentsec.yaml"),
           cmd("agentsec upload .agentsec/report.json --server " + server),
           h("p", { class: "note" }, "Add --no-traces to leave full transcripts out; findings and their evidence are still sent.")),
-        h("li", null, h("h3", null, "Or upload from GitHub Actions on every push"), h("div", { class: "quote code" }, yaml))));
+        h("li", null, h("h3", null, "Or upload from GitHub Actions on every push"), h("div", { class: "quote code" }, yaml),
+          h("p", { class: "note" }, docLink("testing/ci-github-actions", "CI and GitHub Actions guide")))));
   }
 
   function viewProject(r) {
@@ -599,6 +604,7 @@
       h("div", { class: "facts" }, h("span", null, plural(state.reports.length, "run")),
         plan ? h("span", null, h("i", null, "Plan"), plan.label + ", runs kept " + plan.retention_days + " days, up to " + plan.max_reports_per_project) : null)),
       h("div", { style: "display:flex;gap:8px" },
+        docLink("guide/runs-and-history", "Help"),
         state.reports.length > 1 ? h("a", { class: "btn", href: projectHash(null, "/compare") }, "Compare runs") : null,
         p && p.role === "owner" ? h("a", { class: "btn", href: projectHash(null, "/settings") }, "Settings") : null)));
     if (!state.reports.length) {
@@ -653,7 +659,11 @@
           latest.kind === "mcp_scan" ? null : tallyItem(latest.errors, "Errors"),
           latest.kind !== "mcp_scan" && latest.inconclusive ? tallyItem(latest.inconclusive, "Inconclusive") : null)));
     }
-    append(page, section("Findings per run", runs.length > 1 ? "Oldest on the left, up to the last 60 runs. Select a bar to open that run." : null,
+    if (!runs.length) {
+      append(page, h("div", { class: "panel" }, emptyState("No runs match these filters", "Choose another agent or branch above.")));
+      return render(page);
+    }
+    append(page, section("Findings per run", runs.length > 1 ? ["Oldest on the left, up to the last 60 runs. Select a bar to open that run. ", docLink("guide/runs-and-history#findings-per-run", "Legend")] : null,
       runs.length > 1 ? historyChart(runs.slice(0, 60).reverse())
         : h("div", { class: "panel" }, emptyState("History starts with the second run", "Upload another run of " + agent + " and its findings will be charted here run by run."))));
     append(page, section("Runs", null, runsTable(runs)));
@@ -797,12 +807,12 @@
       }).catch(function (x) { clear(tokensBox); append(tokensBox, h("p", { class: "run-err", style: "padding:14px 18px" }, x.message)); });
     }
 
-    append(page, section("Upload tokens", "A token can only upload reports to this project. Revoking it stops uploads immediately.",
+    append(page, section("Upload tokens", ["A token can only upload reports to this project. Revoking it stops uploads immediately. ", docLink("testing/upload", "Uploading reports")],
       created, h("div", { class: "panel", style: "overflow-x:auto;margin-bottom:12px" }, tokensBox), h("div", { style: "max-width:560px" }, form, terr)));
 
     var plan = state.projectDetail && state.projectDetail.plan;
     if (plan) {
-      append(page, section("Plan", null, h("div", { class: "panel" }, h("dl", { class: "kv" },
+      append(page, section("Plan", docLink("guide/projects-and-tokens#retention-and-limits", "Retention and limits"), h("div", { class: "panel" }, h("dl", { class: "kv" },
         h("dt", null, "Plan"), h("dd", null, plan.label + " (free during launch)"),
         h("dt", null, "Run retention"), h("dd", null, plan.retention_days + " days"),
         h("dt", null, "Runs kept per project"), h("dd", null, "The newest " + plan.max_reports_per_project + "; older runs are removed when new ones arrive"),
@@ -881,10 +891,13 @@
     var tabs = data.isMcp
       ? [["overview", "Overview"], ["findings", "Findings", rep.findings.length], ["items", "Definitions", rep.scenarios.length]]
       : [["overview", "Overview"], ["findings", "Findings", rep.findings.length], ["scenarios", "Scenarios", rep.scenarios.length], ["policy", "Policy"]];
+    var tabDocs = { overview: "guide/run-overview", findings: "guide/findings", scenarios: "guide/scenarios-and-traces",
+      policy: "guide/policy-and-mcp#the-policy-tab", items: "guide/policy-and-mcp#definitions-tab" };
+    var current = tabs.some(function (t) { return t[0] === r.tab; }) ? r.tab : "overview";
     append(page, h("nav", { class: "tabs", "aria-label": "Report sections" }, tabs.map(function (t) {
       return h("a", { href: hashFor({ id: entry.id, tab: t[0] }), class: r.tab === t[0] ? "active" : null, "aria-current": r.tab === t[0] ? "page" : null },
         t[1], t[2] !== undefined ? h("span", { class: "count" }, String(t[2])) : null);
-    })));
+    }), docLink(data.isMcp && current === "overview" ? "guide/policy-and-mcp#mcp-scans" : tabDocs[current], "Help for this tab")));
 
     var body;
     if (r.tab === "findings") body = viewFindings(data, r);
@@ -953,20 +966,22 @@
     }
 
     var left = h("div"), right = h("div");
-    append(left, section("Scenarios by attack category", "Each square is one scenario. Select one to open its trace.", matrix(ins, id)));
+    append(left, section("Scenarios by attack category", ["Each square is one scenario. Select one to open its trace. ", docLink("guide/run-overview#scenarios-by-attack-category", "Legend")], matrix(ins, id)));
     if (ins.attack_goals && ins.attack_goals.length) {
-      append(left, section("Attacks that reached their goal", "Delivered payload, then the call the attacker wanted.",
+      append(left, section("Attacks that reached their goal", ["Delivered payload, then the call the attacker wanted. ", docLink("results/attack-goals-and-exposure", "How goals are judged")],
         attackGoalsTable(ins.attack_goals, id)));
     }
-    if (ins.rules.length) append(left, section("Rules that fired", null, rulesTable(ins.rules, id)));
-    if (ins.tools.length) append(left, section("Tools the agent called", "Every call was simulated by AgentSec; no real action was taken.", toolsTable(ins.tools)));
+    if (ins.rules.length) append(left, section("Rules that fired", docLink("reference/rules", "What each rule means"), rulesTable(ins.rules, id)));
+    if (ins.tools.length) append(left, section("Tools the agent called", ["AgentSec simulated these calls; none took a real action, unless the trace marks a call as executed by the agent. ",
+      docLink("guide/run-overview#tools-the-agent-called", "Learn more")], toolsTable(ins.tools)));
     var ran = sum.errors !== sum.scenarios;
-    if (ran) append(right, section("OWASP agentic categories", null, owaspBars(ins.owasp, id),
+    if (ran) append(right, section("OWASP agentic categories", docLink("results/findings-and-severity#owasp-categories", "About the mapping"), owaspBars(ins.owasp, id),
       h("p", { class: "note" }, "Findings per category of the ", h("a", { href: safeHref((state.meta && state.meta.owasp && state.meta.owasp.url) || "https://genai.owasp.org/"), rel: "noreferrer noopener", target: "_blank" }, "OWASP Top 10 for Agentic Applications"),
         ". The mapping is Invaris' closest-fit judgement, not an official classification; a finding can count toward more than one category.")));
-    if (ran) append(right, section("How the attack arrived", "Scenarios with findings, by where the adversarial content was delivered.", vectorBars(ins.vectors)));
-    if (ins.evaluation) append(right, section("What this run measured", null, evaluationPanel(ins, id)));
-    append(right, section("Run", null, runFacts(rep, ins)), section("Reproduce", null, reproduce(data)));
+    if (ran) append(right, section("How the attack arrived", ["Scenarios with findings, by where the adversarial content was delivered. ", docLink("concepts#vectors-how-the-attack-reaches-the-agent", "Vectors")], vectorBars(ins.vectors)));
+    if (ins.evaluation) append(right, section("What this run measured", docLink("results/verdicts", "What the verdicts mean"), evaluationPanel(ins, id)));
+    append(right, section("Run", docLink("guide/run-overview#run", "What these mean"), runFacts(rep, ins)),
+      section("Reproduce", docLink("reference/cli#agentsec-replay", "agentsec replay"), reproduce(data)));
     append(wrap, h("div", { class: "grid2" }, left, right));
     return wrap;
   }
@@ -1448,7 +1463,8 @@
     if (s.status === "inconclusive") {
       append(d, block("Why inconclusive", h("p", null, "This scenario counts as tested only once its adversarial content appears in a tool result the agent received. In this run "
         + INCONCLUSIVE_WHY + ". It is not counted as passed, and a finding from an earlier run is not counted as fixed. The trace below shows how far the agent got."),
-        h("p", { class: "note" }, "To test it, give the agent a task that leads it to the poisoned item, or replay the scenario; with a real model, run it more than once.")));
+        h("p", { class: "note" }, "To test it, give the agent a task that leads it to the poisoned item, or replay the scenario; with a real model, run it more than once. ",
+          docLink("results/attack-goals-and-exposure", "How delivery is tracked"))));
     }
     var goals = goalsFor(data, s.id);
     if (goals.length) {
@@ -1648,8 +1664,8 @@
       append(wrap, h("div", { class: "section" }, bar, key));
     }
     var left = h("div"), right = h("div");
-    append(left, section("Definitions", null, mcpTable(data, ins.items.slice(0, 50))));
-    if (ins.rules.length) append(left, section("Checks that fired", null, rulesTable(ins.rules, id)));
+    append(left, section("Definitions", docLink("testing/mcp#scanning-an-mcp-server", "About MCP scans"), mcpTable(data, ins.items.slice(0, 50))));
+    if (ins.rules.length) append(left, section("Checks that fired", docLink("reference/rules#mcp-scan-rules", "What each check means"), rulesTable(ins.rules, id)));
     append(right, section("OWASP agentic categories", null, owaspBars(ins.owasp, id)));
     append(right, section("Scan again", null, findingCommands(data, { id: "", scenario_id: "" }).firstChild,
       h("p", { class: "note" }, "Pin the definitions with --pin-write and compare later scans with --pin to catch changed definitions (rug pulls).")));
@@ -1743,11 +1759,12 @@
     document.title = "Compare runs | AgentSec";
     var page = h("div", { class: "page" });
     append(page, h("div", { class: "head" }, h("div", null, h("h1", null, "Compare runs"),
-      h("div", { class: "facts" }, h("span", null, "Matches findings by id, exactly like agentsec compare: new, fixed, changed severity, unchanged.")))));
+      h("div", { class: "facts" }, h("span", null, "Matches findings by id, exactly like agentsec compare: new, fixed, changed severity, unchanged."),
+        docLink("guide/compare", "How comparison works")))));
     var usable = state.reports.filter(function (x) { return !x.error; });
     if (usable.length < 2) {
       append(page, h("div", { class: "panel", style: "margin-top:24px" }, emptyState("Comparing needs two runs",
-        "Every upload to this project is kept, so the next run you upload can be compared with this one.")));
+        "Upload another run (within the plan's retention and run limits) and it can be compared with this one.")));
       return render(page);
     }
     var pair = defaultPair(r.q);
@@ -1822,7 +1839,8 @@
     append(wrap, group("Not comparable", c.not_comparable, c.base.id, "The scenario is missing, errored, inconclusive or not observable in the current run, so these cannot count as fixed", untested > 0));
     append(wrap, group("Unchanged", c.unchanged, c.head.id, null, false));
     if (c.evaluation || (c.verdict_changes && c.verdict_changes.length)) {
-      append(wrap, section("Scenario verdicts", "For a baseline and a hardened build of the same agent, or any two runs: what each run measured and every scenario whose verdict changed. A scenario that became inconclusive was not tested, not fixed.",
+      append(wrap, section("Scenario verdicts", ["For a baseline and a hardened build of the same agent, or any two runs: what each run measured and every scenario whose verdict changed. A scenario that became inconclusive was not tested, not fixed. ",
+        docLink("guide/compare#scenario-verdicts", "Learn more")],
         verdictComparison(c)));
     }
     append(wrap, section("Same comparison in the terminal or CI", null,
