@@ -6,7 +6,7 @@ JavaScript, can be indexed by search engines, and ship with every deployment of 
 from __future__ import annotations
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 
 from ..config import get_settings
 from .site import (get_site, render_not_found, render_page, render_search, search_index_gzip, search_index_json,
@@ -41,6 +41,17 @@ def docs_search_index(request: Request):
 @router.get("/sitemap.xml")
 def docs_sitemap():
     return Response(sitemap(get_site(), _public_url()), media_type="application/xml", headers=CACHE)
+
+
+@router.get("/img/{name}")
+def docs_image(name: str, v: str = ""):
+    """A screenshot listed in app/docs/images (never any other file). Page URLs carry the file's content hash, so
+    those requests may be cached for good; anything else is cached briefly."""
+    img = get_site().assets.images.get(name)
+    if img is None:
+        return Response("Not found", status_code=404, media_type="text/plain", headers={"Cache-Control": "no-cache"})
+    cache = "public, max-age=31536000, immutable" if v == img.version else CACHE["Cache-Control"]
+    return FileResponse(img.path, media_type="image/webp", headers={"Cache-Control": cache})
 
 
 @router.get("/search", response_class=HTMLResponse)
