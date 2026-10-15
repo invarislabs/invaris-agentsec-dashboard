@@ -26,6 +26,7 @@ log = logging.getLogger("app.docs")
 CONTENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "content")
 ENGINE_REPO = "https://github.com/invarislabs/invaris-agentsec"
 DASHBOARD_REPO = "https://github.com/invarislabs/invaris-agentsec-dashboard"
+WEBSITE = "https://www.invarislabs.com/"
 EDIT_BASE = DASHBOARD_REPO + "/blob/main/app/docs/content/"
 
 # Sidebar groups, in order. A page names its group with `section:` in its front matter.
@@ -329,7 +330,7 @@ def page_shell(site: Site, *, title: str, description: str, canonical: str, body
 <div class="dx-layout">
   <aside class="dx-sidebar" id="dx-sidebar" aria-label="Documentation">
     <nav>{sidebar}</nav>
-    <div class="dx-side-foot"><a href="/">Open the dashboard</a><a href="{engine_repo}" rel="noopener noreferrer">AgentSec engine on GitHub</a><a href="{dash_repo}" rel="noopener noreferrer">Dashboard on GitHub</a></div>
+    <div class="dx-side-foot"><a href="/">Open the dashboard</a><a href="{engine_repo}" rel="noopener noreferrer">AgentSec engine on GitHub</a><a href="{dash_repo}" rel="noopener noreferrer">Dashboard on GitHub</a><a href="{website}" rel="noopener noreferrer">Invaris Labs website</a></div>
   </aside>
   <div class="dx-scrim" id="dx-scrim" hidden></div>
   <main class="dx-main" id="content" tabindex="-1">
@@ -341,7 +342,7 @@ def page_shell(site: Site, *, title: str, description: str, canonical: str, body
 </html>
 """.format(title=E(full_title), desc=E(description), robots=E(robots), canonical=E(canonical), version=E(__version__),
            icon_search=ICON_SEARCH, icon_theme=ICON_THEME, icon_github=ICON_GITHUB, engine_repo=E(ENGINE_REPO),
-           dash_repo=E(DASHBOARD_REPO), sidebar=_sidebar(site, current), body=body, toc=toc)
+           dash_repo=E(DASHBOARD_REPO), website=E(WEBSITE), sidebar=_sidebar(site, current), body=body, toc=toc)
 
 
 def render_page(site: Site, page: Page, public_url: str) -> str:
