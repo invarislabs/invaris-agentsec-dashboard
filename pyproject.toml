@@ -25,6 +25,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/invarislabs/invaris-agentsec-dashboard"
+Website = "https://www.invarislabs.com/"
 Issues = "https://github.com/invarislabs/invaris-agentsec-dashboard/issues"
 Engine = "https://github.com/invarislabs/invaris-agentsec"
 
