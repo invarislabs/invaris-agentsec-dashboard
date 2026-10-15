@@ -516,7 +516,8 @@
         h("button", { class: "btn", type: "submit" }, "Sign in")), err));
     }
     append(box, h("p", { class: "note", style: "margin-top:22px" }, "Free during launch. Reports reach this dashboard only when you upload them with agentsec upload or the GitHub Action."),
-      h("p", { class: "note" }, h("a", { href: "/docs" }, "Read the documentation"), " · ", h("a", { href: "/docs/quickstart" }, "Quickstart")));
+      h("p", { class: "note" }, h("a", { href: "/docs" }, "Read the documentation"), " · ", h("a", { href: "/docs/quickstart" }, "Quickstart"),
+        " · ", h("a", { href: "https://www.invarislabs.com/", target: "_blank", rel: "noopener noreferrer" }, "Invaris Labs")));
     render(h("div", { class: "page signin-page" }, box));
   }
 
