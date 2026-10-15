@@ -1,6 +1,7 @@
 # AgentSec hosted dashboard
 
-The hosted dashboard for [Invaris AgentSec](https://github.com/invarislabs/invaris-agentsec) reports. Teams send
+The hosted dashboard for [Invaris AgentSec](https://github.com/invarislabs/invaris-agentsec) reports, by
+[Invaris Labs](https://www.invarislabs.com/). Teams send
 the `report.json` files AgentSec writes from CI or their machines, and get every run of every agent in one place:
 findings with their evidence, full traces, history across runs, and what changed between any two runs.
 
