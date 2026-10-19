@@ -4,6 +4,7 @@ These tests treat the implementation as the source of truth. When the engine gai
 finding rule, or the dashboard gains a route or setting, a test here fails until the documentation describes it.
 """
 import argparse
+import json
 import re
 from pathlib import Path
 
@@ -62,12 +63,17 @@ def test_unknown_pages_and_trailing_slashes(client):
 
 
 def test_pages_are_compatible_with_the_content_security_policy(client):
+    """Every script that runs comes from /static/. The only inline <script> is JSON-LD, which browsers never execute
+    (script-src does not apply to it), and it cannot contain anything that would end the element early."""
     for page in SITE.pages:
         body = client.get(page.url).text
         assert ' style="' not in body, page.url
         scripts = re.findall(r"<script([^>]*)>", body)
-        assert scripts and all('src="/static/' in s for s in scripts), page.url
+        assert any('src="/static/' in s for s in scripts), page.url
+        assert all('src="/static/' in s or s == ' type="application/ld+json"' for s in scripts), page.url
         assert "<script>" not in body.replace("&lt;script&gt;", "")
+        for data in re.findall(r'<script type="application/ld\+json">(.*?)</script>', body, re.S):
+            assert "<" not in data and ">" not in data, page.url
 
 
 # ----------------------------------------------------------------------------------------------- links
@@ -121,6 +127,125 @@ def test_sitemap_lists_every_page(client):
     assert r.status_code == 200 and r.headers["content-type"].startswith("application/xml")
     for page in SITE.pages:
         assert "<loc>%s%s</loc>" % (ORIGIN, page.url) in r.text
+    assert r.text.count("<loc>") == len(SITE.pages)                 # nothing else: no search pages, no duplicates
+    assert client.get("/sitemap.xml").text == r.text                # the conventional root address serves it too
+
+
+def _head(html):
+    return html.split("</head>", 1)[0]
+
+
+def _meta(html, attr, name):
+    m = re.search(r'<meta %s="%s" content="([^"]*)">' % (attr, re.escape(name)), _head(html))
+    return m.group(1) if m else None
+
+
+def _json_ld(html):
+    blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+    assert len(blocks) == 1
+    return json.loads(blocks[0])
+
+
+def test_titles_and_descriptions_are_unique_and_fit_search_results(client):
+    """Search engines cut titles at about 60 characters and descriptions at about 160; duplicates compete with each
+    other. Every page has its own, within the limits page authors are given (see developers/writing-docs)."""
+    titles, descriptions = {}, {}
+    for page in SITE.pages:
+        html = client.get(page.url).text
+        title = re.search(r"<title>(.*?)</title>", html).group(1)
+        desc = _meta(html, "name", "description")
+        assert 10 <= len(title) <= 70, (page.url, title)
+        assert 50 <= len(desc) <= 170, (page.url, desc)               # escaped HTML: a little longer than the text
+        assert title not in titles, (page.url, titles.get(title))
+        assert desc not in descriptions, (page.url, descriptions.get(desc))
+        titles[title], descriptions[desc] = page.url, page.url
+        assert _meta(html, "property", "og:title") and _meta(html, "property", "og:description") == desc
+    home = client.get("/docs").text
+    assert "AI Agent Security Testing" in re.search(r"<title>(.*?)</title>", home).group(1)
+
+
+def test_seo_front_matter_is_validated(tmp_path):
+    from app.docs.site import DocsError
+    root = tmp_path / "content"
+    root.mkdir()
+    (root / "index.md").write_text("---\ntitle: Home\ndescription: d\nsection: start\nseo_title: %s\n---\nx\n"
+                                   % ("x" * 66), encoding="utf-8")
+    with pytest.raises(DocsError, match="seo_title"):
+        load_site(str(root), strict=True)
+    (root / "index.md").write_text("---\ntitle: Home\ndescription: d\nsection: start\nseo_description: %s\n---\nx\n"
+                                   % ("x" * 166), encoding="utf-8")
+    with pytest.raises(DocsError, match="seo_description"):
+        load_site(str(root), strict=True)
+
+
+def test_link_previews_use_the_social_card(client):
+    import struct
+    card = ROOT / "app" / "static" / "social-card.png"
+    head = card.read_bytes()[:24]
+    assert head[:8] == b"\x89PNG\r\n\x1a\n" and struct.unpack(">II", head[16:24]) == (1200, 630)
+    assert card.stat().st_size <= 150 * 1024
+    assert client.get("/static/social-card.png").status_code == 200
+    html = client.get("/docs/quickstart").text
+    assert _meta(html, "property", "og:image") == ORIGIN + "/static/social-card.png"
+    assert _meta(html, "name", "twitter:card") == "summary_large_image"
+    assert _meta(html, "name", "twitter:image") == ORIGIN + "/static/social-card.png"
+    assert _meta(html, "property", "og:url") == ORIGIN + "/docs/quickstart"
+    assert _meta(html, "property", "og:type") == "article"
+    assert _meta(client.get("/docs").text, "property", "og:type") == "website"
+
+
+def test_structured_data(client):
+    """JSON-LD on every page: the organization and site everywhere, the AgentSec application on the docs home, and
+    a TechArticle with a breadcrumb trail ending at the page's own canonical URL everywhere else."""
+    home = _json_ld(client.get("/docs").text)
+    types = {n["@type"] for n in home["@graph"]}
+    assert home["@context"] == "https://schema.org"
+    assert {"Organization", "WebSite", "SoftwareApplication", "WebPage"} <= types
+    app = next(n for n in home["@graph"] if n["@type"] == "SoftwareApplication")
+    assert app["name"] == "AgentSec" and app["offers"]["price"] == "0" and "aggregateRating" not in app
+    for page in SITE.pages:
+        if not page.slug:
+            continue
+        data = _json_ld(client.get(page.url).text)
+        nodes = {n["@type"]: n for n in data["@graph"]}
+        article, crumbs = nodes["TechArticle"], nodes["BreadcrumbList"]["itemListElement"]
+        assert article["url"] == ORIGIN + page.url and article["headline"] and len(article["headline"]) <= 110
+        assert [c["position"] for c in crumbs] == list(range(1, len(crumbs) + 1))
+        assert crumbs[0]["item"] == ORIGIN + "/docs" and crumbs[-1]["item"] == ORIGIN + page.url
+        for c in crumbs:
+            assert c["item"].startswith(ORIGIN + "/docs") and c["item"][len(ORIGIN):] in {p.url for p in SITE.pages}
+
+
+def test_breadcrumbs_link_each_section_to_its_first_page(client):
+    html = client.get("/docs/testing/mcp").text
+    crumbs = re.search(r'<nav class="dx-crumbs" aria-label="Breadcrumb">(.*?)</nav>', html).group(1)
+    assert '<a href="/docs">Docs</a>' in crumbs and '<a href="/docs/testing/overview">Testing guides</a>' in crumbs
+    first = client.get("/docs/testing/overview").text      # a section's first page does not link to itself
+    crumbs = re.search(r'<nav class="dx-crumbs" aria-label="Breadcrumb">(.*?)</nav>', first).group(1)
+    assert 'href="/docs/testing/overview"' not in crumbs and "<span>Testing guides</span>" in crumbs
+
+
+def test_pages_that_must_not_be_indexed(client):
+    """Search results, the search index and missing pages stay out of search engines, and claim no canonical URL."""
+    for path, status in (("/docs/search?q=token", 200), ("/docs/no/such/page", 404)):
+        r = client.get(path)
+        assert r.status_code == status and r.headers["x-robots-tag"] == "noindex", path
+        assert '<meta name="robots" content="noindex,follow">' in r.text and 'rel="canonical"' not in r.text, path
+    assert client.get("/docs/search-index.json").headers["x-robots-tag"] == "noindex"
+    for page in SITE.pages:
+        assert "x-robots-tag" not in client.get(page.url).headers, page.url
+
+
+def test_robots_txt(client):
+    r = client.get("/robots.txt")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/plain")
+    lines = r.text.splitlines()
+    assert "Sitemap: %s/docs/sitemap.xml" % ORIGIN in lines
+    assert {"Disallow: /api/", "Disallow: /auth/", "Disallow: /docs/search"} <= set(lines)
+    disallowed = [l.split(":", 1)[1].strip() for l in lines if l.startswith("Disallow:")]
+    for page in SITE.pages:                                       # no documentation page is blocked
+        assert not any(page.url.startswith(d) for d in disallowed), page.url
+    assert not any("/static/".startswith(d) for d in disallowed)  # crawlers need the CSS and fonts to render pages
 
 
 # ----------------------------------------------------------------------------------------------- renderer
@@ -351,7 +476,7 @@ def test_every_page_is_packaged():
     packaged = {Path(p).resolve() for pat in patterns for p in glob.glob(str(app_dir / pat), recursive=True)}
     pages = {p.resolve() for p in Path(CONTENT).rglob("*.md")}
     assert pages and pages <= packaged
-    for asset in ("docs.css", "docs.js", "theme.js"):
+    for asset in ("docs.css", "docs.js", "theme.js", "social-card.png"):
         assert (app_dir / "static" / asset).resolve() in packaged
     pictures = {p.resolve() for d in ("images", "diagrams") for p in (app_dir / "docs" / d).iterdir()}
     assert pictures and pictures <= packaged
