@@ -1,6 +1,7 @@
 ---
 title: Scenarios and traces
 description: Read a scenario's verdict and its full trace in the AgentSec dashboard - status filters, outcome, attack timelines, attack goals, event types, phases, multi-agent tags and evidence highlights.
+seo_description: Read a scenario's verdict and full trace in the AgentSec dashboard: status filters, outcomes, attack timelines and goals, event types, phases and evidence.
 section: guide
 order: 6
 ---

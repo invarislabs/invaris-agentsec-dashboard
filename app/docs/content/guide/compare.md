@@ -2,6 +2,8 @@
 title: Comparing runs
 nav_title: Compare runs
 description: Compare two runs in the AgentSec dashboard - new, fixed and changed findings, not-comparable findings and why, and per-scenario verdict changes for baseline versus hardened builds.
+seo_title: Comparing AgentSec Runs: Baseline vs Hardened
+seo_description: Compare two AgentSec runs in the dashboard: new, fixed and changed findings, why some are not comparable, and per-scenario verdict changes between builds.
 section: guide
 order: 8
 ---
