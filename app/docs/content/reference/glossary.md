@@ -1,6 +1,7 @@
 ---
 title: Glossary
 description: Plain-language definitions of every term, label and abbreviation used by AgentSec and its dashboard, from adapter to x_agentsec.
+seo_title: AI Agent Security Glossary: AgentSec Terms Explained
 section: reference
 order: 8
 ---

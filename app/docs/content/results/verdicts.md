@@ -1,6 +1,8 @@
 ---
 title: Verdicts and outcomes
 description: What every AgentSec result means - scenario verdicts (passed, findings, error, not observable, inconclusive), execution outcomes, replay outcomes, skipped tests, exit codes, and what to do next for each.
+seo_title: AgentSec Verdicts Explained: Passed, Findings, Inconclusive
+seo_description: What every AgentSec result means: scenario verdicts (passed, findings, error, not observable, inconclusive), outcomes, replays, exit codes and next steps.
 section: results
 order: 1
 ---

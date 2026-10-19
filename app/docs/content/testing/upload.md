@@ -2,6 +2,7 @@
 title: Uploading reports to the dashboard
 nav_title: Upload to the dashboard
 description: Send AgentSec reports to the hosted dashboard with agentsec upload, the GitHub Action or the HTTP API directly - tokens, metadata, transcripts, compression, limits and errors.
+seo_description: Send AgentSec reports to the hosted dashboard with agentsec upload, the GitHub Action or the HTTP API: tokens, metadata, transcripts, limits and errors.
 section: testing
 order: 14
 ---

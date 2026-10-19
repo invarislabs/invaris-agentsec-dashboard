@@ -1,6 +1,8 @@
 ---
 title: CLI reference
 description: Every agentsec command and option - test, replay, compare, mcp scan, dashboard, upload, init, schema - with defaults, examples, exit codes and error messages, plus the dashboard's maintenance command.
+seo_title: agentsec CLI Reference: Every Command and Option
+seo_description: Every agentsec command and option (test, replay, compare, mcp scan, dashboard, upload, init, schema) with defaults, examples, exit codes and error messages.
 section: reference
 order: 1
 ---

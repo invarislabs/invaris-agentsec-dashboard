@@ -1,6 +1,8 @@
 ---
 title: Testing with the CLI
 description: Test an AI agent from the command line with agentsec test - prerequisites, writing a policy, running, selecting scenarios, seeds, report formats, fail thresholds, replay, compare and troubleshooting.
+seo_title: Test an AI Agent from the Command Line with agentsec test
+seo_description: Run AgentSec's adversarial tests against your AI agent from the terminal: write a policy, run agentsec test, pick scenarios, set thresholds, replay, compare.
 section: testing
 order: 2
 ---

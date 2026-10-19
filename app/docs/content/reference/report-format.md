@@ -2,6 +2,8 @@
 title: Report and trace format
 nav_title: Report format
 description: The structure of AgentSec's report.json, mcp-report.json and traces - run configuration, summary, findings, scenarios, delivery and attack goals, trace events, secret masking and SARIF.
+seo_title: AgentSec report.json, Trace and SARIF Format
+seo_description: The structure of AgentSec's report.json, mcp-report.json and traces: run configuration, summary, findings, scenarios, attack goals, trace events and SARIF.
 section: reference
 order: 3
 ---

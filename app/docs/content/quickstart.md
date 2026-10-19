@@ -1,12 +1,16 @@
 ---
 title: Quickstart
 description: Install AgentSec, attack the bundled vulnerable agent and its hardened twin, read the findings, and send the report to the dashboard, in about ten minutes.
+seo_title: AgentSec Quickstart: Test an AI Agent for Prompt Injection
+seo_description: Run your first AI agent security test in about ten minutes: install AgentSec, attack a deliberately vulnerable agent and its hardened twin, then compare.
 section: start
 order: 2
 ---
 
-This walkthrough uses the reference agent that ships with AgentSec, so you need no API key, model or network
-access. By the end you will have seen a failing run, a passing run, the comparison between them, and the same
+This quickstart runs your first AI agent security test. AgentSec attacks a deliberately vulnerable agent with
+prompt injection, poisoned documents and poisoned tool output, then attacks its hardened twin, so you can see what a
+failing and a passing run look like. The walkthrough uses the reference agent that ships with AgentSec, so you
+need no API key, model or network access. By the end you will have seen a failing run, a passing run, the comparison between them, and the same
 results in the dashboard.
 
 ## Prerequisites
@@ -176,4 +180,5 @@ The project after uploading the runs. This one also holds a run made while the a
 - [How AgentSec works](/docs/concepts): The ideas behind policies, scenarios, traces and verdicts.
 - [Testing with the CLI](/docs/testing/cli): Seeds, scenario selection, report formats, exit codes.
 - [Run it in CI](/docs/testing/ci-github-actions): The GitHub Action, pull-request comments and uploads.
+- [Attack catalog](/docs/reference/attack-catalog): Every scenario the suite ran, and what failure looks like.
 :::

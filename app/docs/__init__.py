@@ -6,17 +6,21 @@ JavaScript, can be indexed by search engines, and ship with every deployment of 
 from __future__ import annotations
 
 from fastapi import APIRouter, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
 from ..config import get_settings
-from .site import (get_site, render_not_found, render_page, render_search, search_index_gzip, search_index_json,
-                   sitemap)
+from .site import (get_site, render_not_found, render_page, render_search, robots_txt, search_index_gzip,
+                   search_index_json, sitemap)
 
 router = APIRouter(prefix="/docs", include_in_schema=False)
+# Site-wide files crawlers look for at the root: robots.txt, and the sitemap at its conventional address too.
+root_router = APIRouter(include_in_schema=False)
 
 # The pages are the same for everyone and never touch the session, so shared caches may keep them briefly
 # (tests/test_docs.py checks that no Set-Cookie is ever sent with them).
 CACHE = {"Cache-Control": "public, max-age=300"}
+# Search results and the search index have no content of their own; keep them out of search engines.
+NOINDEX = {"X-Robots-Tag": "noindex"}
 
 
 def _public_url() -> str:
@@ -31,7 +35,7 @@ def docs_home():
 @router.get("/search-index.json")
 def docs_search_index(request: Request):
     # The index holds the text of every page (about 330 KB); send it compressed when the browser accepts gzip.
-    headers = dict(CACHE, Vary="Accept-Encoding")
+    headers = dict(CACHE, Vary="Accept-Encoding", **NOINDEX)
     if "gzip" in request.headers.get("accept-encoding", "").lower():
         headers["Content-Encoding"] = "gzip"
         return Response(search_index_gzip(), media_type="application/json", headers=headers)
@@ -41,6 +45,16 @@ def docs_search_index(request: Request):
 @router.get("/sitemap.xml")
 def docs_sitemap():
     return Response(sitemap(get_site(), _public_url()), media_type="application/xml", headers=CACHE)
+
+
+@root_router.get("/sitemap.xml")
+def root_sitemap():
+    return docs_sitemap()
+
+
+@root_router.get("/robots.txt")
+def robots():
+    return PlainTextResponse(robots_txt(_public_url()), headers=CACHE)
 
 
 @router.get("/img/{name}")
@@ -56,7 +70,8 @@ def docs_image(name: str, v: str = ""):
 
 @router.get("/search", response_class=HTMLResponse)
 def docs_search(q: str = ""):
-    return HTMLResponse(render_search(get_site(), q[:200], _public_url()), headers={"Cache-Control": "no-cache"})
+    return HTMLResponse(render_search(get_site(), q[:200], _public_url()),
+                        headers=dict({"Cache-Control": "no-cache"}, **NOINDEX))
 
 
 @router.get("/{slug:path}", response_class=HTMLResponse)
@@ -72,8 +87,9 @@ def _page(slug: str) -> HTMLResponse:
     site = get_site()
     page = site.by_slug.get(slug)
     if page is None:
-        return HTMLResponse(render_not_found(site, _public_url()), status_code=404, headers={"Cache-Control": "no-cache"})
+        return HTMLResponse(render_not_found(site, _public_url()), status_code=404,
+                            headers=dict({"Cache-Control": "no-cache"}, **NOINDEX))
     return HTMLResponse(render_page(site, page, _public_url()), headers=CACHE)
 
 
-__all__ = ["router"]
+__all__ = ["root_router", "router"]

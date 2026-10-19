@@ -2,6 +2,7 @@
 title: The local dashboard
 nav_title: Local dashboard
 description: Browse AgentSec report files on your own machine with agentsec dashboard - options, what it shows, its security model, and how it differs from the hosted dashboard.
+seo_description: Browse AgentSec report files on your machine with agentsec dashboard: options, what it shows, its security model, and how it differs from the hosted dashboard.
 section: guide
 order: 9
 ---

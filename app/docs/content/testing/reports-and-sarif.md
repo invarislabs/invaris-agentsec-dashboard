@@ -2,6 +2,8 @@
 title: Reports, SARIF and CI output
 nav_title: Reports and SARIF
 description: The report files AgentSec writes (JSON, HTML, Markdown, SARIF), GitHub Code Scanning integration, workflow annotations and job summaries, and querying report.json.
+seo_title: AgentSec Reports and SARIF for GitHub Code Scanning
+seo_description: The report files AgentSec writes (JSON, HTML, Markdown, SARIF), GitHub Code Scanning integration, workflow annotations, job summaries and querying report.json.
 section: testing
 order: 13
 ---

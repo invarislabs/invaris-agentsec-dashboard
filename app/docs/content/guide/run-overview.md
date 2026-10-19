@@ -2,6 +2,7 @@
 title: A run's overview
 nav_title: Run overview
 description: Every part of a run's page in the AgentSec dashboard - the header facts, tabs, verdict, scenario grid, attack goals, rules, tools, OWASP categories, attack vectors, what the run measured, run statistics and reproduce commands.
+seo_description: Every part of a run's page in the AgentSec dashboard: verdict, scenario grid, attack goals, rules, tools, OWASP categories, vectors and statistics.
 section: guide
 order: 4
 ---

@@ -2,6 +2,8 @@
 title: The judge (model-assisted checks)
 nav_title: Judge
 description: Enable AgentSec's optional judge model to catch paraphrased leaks and goal hijacks that deterministic rules miss - configuration, what is sent, how findings are labelled, and limits.
+seo_title: AgentSec Judge: Model-Assisted Checks for Paraphrased Leaks
+seo_description: Enable AgentSec's optional judge model to catch paraphrased leaks and goal hijacks that rules miss: configuration, what is sent, labels and limits.
 section: testing
 order: 11
 ---

@@ -2,6 +2,8 @@
 title: Custom scenarios and attack packs
 nav_title: Attack packs
 description: Write your own AgentSec attack scenarios as an attack pack - categories, markers and canaries, delivery tracking with exposure, attack goals, mid-task injection, pack evaluators and judge checks - plus the bundled domain packs.
+seo_title: Custom AI Agent Attack Scenarios with Attack Packs
+seo_description: Write your own AI agent attack scenarios as an AgentSec attack pack: categories, markers, canaries, delivery tracking, attack goals and evaluators.
 section: testing
 order: 9
 ---

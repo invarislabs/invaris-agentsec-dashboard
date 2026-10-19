@@ -2,6 +2,7 @@
 title: Local setup and development
 nav_title: Local setup
 description: Run the AgentSec dashboard and engine locally - prerequisites, installing both repositories, environment variables, SQLite or Postgres, migrations, Docker Compose, and development commands.
+seo_description: Run the AgentSec dashboard and engine locally: prerequisites, installing both repositories, environment, SQLite or Postgres, migrations and Docker Compose.
 section: developers
 order: 2
 ---

@@ -1,6 +1,7 @@
 ---
 title: Contributing and deploying
 description: How to contribute to AgentSec and its dashboard (workflow, CLA, security reports), and how to deploy the dashboard - Docker, Render and Neon for free, environment, migrations, daily clean-up and updates.
+seo_description: How to contribute to AgentSec and its dashboard (workflow, CLA, security reports), and how to deploy the dashboard with Docker, or for free on Render and Neon.
 section: developers
 order: 7
 ---

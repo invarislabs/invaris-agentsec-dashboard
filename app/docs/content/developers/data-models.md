@@ -1,6 +1,7 @@
 ---
 title: Data models
 description: The AgentSec dashboard's database tables (users, projects, memberships, upload tokens, reports) and the engine's core data models (Policy, Scenario, Trace, Finding, ScenarioResult) and how they map to JSON.
+seo_description: The AgentSec dashboard's database tables and the engine's core data models (Policy, Scenario, Trace, Finding, ScenarioResult), and how they map to JSON.
 section: developers
 order: 3
 ---

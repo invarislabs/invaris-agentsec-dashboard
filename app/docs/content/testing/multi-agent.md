@@ -1,6 +1,8 @@
 ---
 title: Multi-agent testing
 description: Test planner/worker teams, crews and sub-agents for privilege escalation through delegation - declaring agent_roles, reporting which agent acted, the rules, and the not-observable verdict.
+seo_title: Multi-Agent Security Testing: Delegation and Privileges
+seo_description: Test planner/worker teams, crews and sub-agents for privilege escalation through delegation with AgentSec: agent_roles, actor attribution, rules and verdicts.
 section: testing
 order: 10
 ---
