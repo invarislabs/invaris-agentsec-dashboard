@@ -2,6 +2,8 @@
 title: Email and browser agent testing
 nav_title: Email and browser agents
 description: Test email assistants and browser agents against indirect prompt injection with AgentSec's email and browser attack packs and their LLM-powered reference assistants, baseline versus hardened.
+seo_title: Prompt Injection Testing for Email and Browser Agents
+seo_description: Test email assistants and browser agents against indirect prompt injection with AgentSec's email and browser attack packs and LLM-powered reference assistants.
 section: testing
 order: 8
 ---
