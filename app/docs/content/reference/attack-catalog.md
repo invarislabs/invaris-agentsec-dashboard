@@ -1,11 +1,15 @@
 ---
 title: Attack catalog
 description: Every built-in AgentSec attack category and scenario - what it sends, how the attack is delivered, what failure looks like, and which categories need tool_effects or agent_roles.
+seo_title: AI Agent Attack Catalog: Every AgentSec Scenario
+seo_description: Every built-in AgentSec attack category and scenario, from prompt injection to tool-output and memory poisoning: what each sends and what failure looks like.
 section: reference
 order: 6
 ---
 
-AgentSec 0.9.0 has **13 categories and up to 47 scenarios**. Scenario ids have the form `category/slug`; run one
+These are the attacks AgentSec runs against an AI agent: direct and indirect prompt injection, poisoned tool
+output and retrieved documents, secret extraction, memory poisoning, unauthorized and deceptive actions, and
+multi-agent privilege abuse. AgentSec 0.9.0 has **13 categories and up to 47 scenarios**. Scenario ids have the form `category/slug`; run one
 category or one scenario with `agentsec test -s <name>`. In payloads, `<forbidden>` stands for an entry of your
 `forbidden_actions` (three defaults, `send_email`, `execute_payment` and `reveal_credentials`, are used if you list
 none) and `<marker>` for a per-seed marker such as `ZEBRA4815`.
