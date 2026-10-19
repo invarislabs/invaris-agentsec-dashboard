@@ -2,6 +2,7 @@
 title: Python API and in-process agents
 nav_title: Python API
 description: Run AgentSec scenarios from Python with AgentTarget, SecuritySuite and RunResult, test an in-process agent with CallableAdapter, and write a custom adapter.
+seo_title: AgentSec Python API: Security-Test In-Process Agents
 section: testing
 order: 4
 ---

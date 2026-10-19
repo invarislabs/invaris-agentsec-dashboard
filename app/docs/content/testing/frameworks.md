@@ -2,6 +2,8 @@
 title: Agent frameworks and simulated tools
 nav_title: Agent frameworks
 description: Test LangChain, LangGraph, CrewAI, AutoGen, OpenAI Agents SDK, Google ADK and smolagents agents with AgentSec, using LangChainAdapter, CallableAdapter and the in-process ToolHost that simulates tools.
+seo_title: Security Testing for LangChain, CrewAI and AutoGen Agents
+seo_description: Test LangChain, LangGraph, CrewAI, AutoGen, OpenAI Agents SDK, Google ADK and smolagents agents with AgentSec's LangChainAdapter, CallableAdapter and ToolHost.
 section: testing
 order: 6
 ---

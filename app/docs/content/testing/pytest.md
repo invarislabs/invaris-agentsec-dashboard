@@ -2,6 +2,7 @@
 title: The pytest plugin
 nav_title: pytest plugin
 description: Turn AgentSec scenarios into pytest tests with the built-in plugin - options, fixtures, skips for untested categories, and failure output.
+seo_title: AI Agent Security Tests in pytest with AgentSec
 section: testing
 order: 5
 ---
