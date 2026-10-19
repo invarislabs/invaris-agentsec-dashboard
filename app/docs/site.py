@@ -29,6 +29,18 @@ DASHBOARD_REPO = "https://github.com/invarislabs/invaris-agentsec-dashboard"
 WEBSITE = "https://www.invarislabs.com/"
 EDIT_BASE = DASHBOARD_REPO + "/blob/main/app/docs/content/"
 
+# Search and social metadata. Titles and descriptions beyond these lengths get cut off in search results, so a
+# page whose `title`/`description` is longer sets a shorter `seo_title`/`seo_description` in its front matter.
+SITE_NAME = "AgentSec Docs"
+TITLE_SUFFIX = " | " + SITE_NAME
+MAX_SEO_TITLE = 65
+MAX_SEO_DESCRIPTION = 165
+SOCIAL_CARD = "/static/social-card.png"          # 1200x630, made by scripts/make_social_card.py
+SOCIAL_CARD_ALT = "AgentSec Docs: security testing for AI agents, open source, from your terminal to CI"
+ORG_PROFILES = ["https://github.com/invarislabs", "https://x.com/InvarisLabs",
+                "https://www.linkedin.com/company/invarislabs"]
+ENGINE_PACKAGE = "https://pypi.org/project/invaris-agentsec/"
+
 # Sidebar groups, in order. A page names its group with `section:` in its front matter.
 SECTIONS: List[Tuple[str, str]] = [
     ("start", "Get started"),
@@ -59,10 +71,26 @@ class Page:
     sections: List[Tuple[str, str, str]]
     links: List[str] = field(default_factory=list)
     figures: List[str] = field(default_factory=list)
+    seo_title: str = ""        # optional front matter: the <title> and social title, when `title` is not enough
+    seo_description: str = ""  # optional front matter: the meta description, when `description` is too long
 
     @property
     def url(self) -> str:
         return "/docs" + ("/" + self.slug if self.slug else "")
+
+    @property
+    def social_title(self) -> str:
+        """The title search results and link previews show (without the site name)."""
+        return self.seo_title or self.title
+
+    @property
+    def head_title(self) -> str:
+        """The <title>: an explicit `seo_title` is used as written; otherwise the page title plus the site name."""
+        return self.seo_title or self.title + TITLE_SUFFIX
+
+    @property
+    def meta_description(self) -> str:
+        return self.seo_description or self.description
 
 
 @dataclass
@@ -72,6 +100,10 @@ class Site:
     # Pages that could not be loaded ("path: reason"). Production serves the rest; tests load with strict=True.
     errors: List[str] = field(default_factory=list)
     assets: Assets = field(default_factory=Assets)
+
+    def section_home(self, section: str) -> Optional[Page]:
+        """The first page of a sidebar section: where its breadcrumb links to."""
+        return next((p for p in self.pages if p.section == section), None)
 
     def neighbours(self, page: Page) -> Tuple[Optional[Page], Optional[Page]]:
         i = self.pages.index(page)
@@ -108,6 +140,10 @@ def _load_page(rel: str, root: str = CONTENT, assets: Optional[Assets] = None, s
             raise DocsError("%s: front matter needs `%s`" % (rel, key))
     if meta["section"] not in SECTION_TITLES:
         raise DocsError("%s: unknown section %r (one of %s)" % (rel, meta["section"], ", ".join(SECTION_TITLES)))
+    if len(meta.get("seo_title", "")) > MAX_SEO_TITLE:
+        raise DocsError("%s: seo_title is longer than %d characters" % (rel, MAX_SEO_TITLE))
+    if len(meta.get("seo_description", "")) > MAX_SEO_DESCRIPTION:
+        raise DocsError("%s: seo_description is longer than %d characters" % (rel, MAX_SEO_DESCRIPTION))
     slug = rel[:-3].replace(os.sep, "/")
     if slug == "index":
         slug = ""
@@ -117,7 +153,8 @@ def _load_page(rel: str, root: str = CONTENT, assets: Optional[Assets] = None, s
                 nav_title=meta.get("nav_title") or meta["title"], description=meta["description"],
                 section=meta["section"], order=int(meta.get("order", "100")), html=rendered.html,
                 headings=rendered.headings, sections=rendered.sections, links=rendered.links,
-                figures=rendered.figures)
+                figures=rendered.figures, seo_title=meta.get("seo_title", ""),
+                seo_description=meta.get("seo_description", ""))
 
 
 def load_site(root: str = CONTENT, strict: bool = False, images: str = IMAGES, diagrams: str = DIAGRAMS) -> Site:
@@ -283,9 +320,22 @@ def _pager(site: Site, page: Page) -> str:
         cell(prev, "Previous", "prev"), cell(nxt, "Next", "next"))
 
 
-def page_shell(site: Site, *, title: str, description: str, canonical: str, body: str,
-               current: Optional[Page] = None, toc: str = "", robots: str = "index,follow") -> str:
-    full_title = "%s | AgentSec Docs" % title if title != "AgentSec documentation" else title
+def _json_ld(data: Dict) -> str:
+    """A JSON-LD block. It is data, never executed (the CSP's script-src does not apply to it); '<', '>' and '&' are
+    escaped so no page text can close the element early."""
+    text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    text = text.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return '<script type="application/ld+json">%s</script>' % text
+
+
+def page_shell(site: Site, *, title: str, description: str, canonical: Optional[str], public_url: str, body: str,
+               current: Optional[Page] = None, toc: str = "", robots: str = "index,follow",
+               social_title: Optional[str] = None, og_type: str = "article", structured: Optional[Dict] = None) -> str:
+    """The HTML around every docs page. `title` is the full <title>. Pages that must not be indexed (search
+    results, not found) pass robots="noindex,..." and no canonical URL."""
+    image = public_url + SOCIAL_CARD
+    canonical_tags = ('<link rel="canonical" href="{0}">\n<meta property="og:url" content="{0}">\n'.format(E(canonical))
+                      if canonical else "")
     return """<!doctype html>
 <html lang="en">
 <head>
@@ -296,19 +346,29 @@ def page_shell(site: Site, *, title: str, description: str, canonical: str, body
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <meta name="robots" content="{robots}">
-<link rel="canonical" href="{canonical}">
-<meta property="og:type" content="article">
-<meta property="og:site_name" content="AgentSec Docs">
-<meta property="og:title" content="{title}">
+{canonical_tags}<meta property="og:type" content="{og_type}">
+<meta property="og:site_name" content="{site_name}">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="{social_title}">
 <meta property="og:description" content="{desc}">
-<meta property="og:url" content="{canonical}">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="{image}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{image_alt}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@InvarisLabs">
+<meta name="twitter:title" content="{social_title}">
+<meta name="twitter:description" content="{desc}">
+<meta name="twitter:image" content="{image}">
+<meta name="twitter:image:alt" content="{image_alt}">
 <meta name="generator" content="AgentSec dashboard {version}">
 <link rel="icon" href="/static/mark.svg" type="image/svg+xml">
+<link rel="preload" href="/static/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/static/app.css">
 <link rel="stylesheet" href="/static/docs.css">
 <script src="/static/theme.js"></script>
 <script src="/static/docs.js" defer></script>
+{structured}
 </head>
 <body class="dx">
 <a class="dx-skip" href="#content">Skip to content</a>
@@ -340,20 +400,99 @@ def page_shell(site: Site, *, title: str, description: str, canonical: str, body
 </div>
 </body>
 </html>
-""".format(title=E(full_title), desc=E(description), robots=E(robots), canonical=E(canonical), version=E(__version__),
+""".format(title=E(title), desc=E(description), robots=E(robots), canonical_tags=canonical_tags, og_type=E(og_type),
+           site_name=E(SITE_NAME), social_title=E(social_title or title), image=E(image), image_alt=E(SOCIAL_CARD_ALT),
+           structured=_json_ld(structured) if structured else "", version=E(__version__),
            icon_search=ICON_SEARCH, icon_theme=ICON_THEME, icon_github=ICON_GITHUB, engine_repo=E(ENGINE_REPO),
            dash_repo=E(DASHBOARD_REPO), website=E(WEBSITE), sidebar=_sidebar(site, current), body=body, toc=toc)
 
 
+def _crumbs(site: Site, page: Page) -> List[Tuple[str, Optional[str]]]:
+    """(name, url) from the docs home to the page's section. The section links to its first page, unless that is
+    this page or the docs home itself."""
+    trail: List[Tuple[str, Optional[str]]] = [("Docs", "/docs")]
+    home = site.section_home(page.section)
+    if home is not None and home.slug and home is not page:
+        trail.append((SECTION_TITLES[page.section], home.url))
+    elif page.slug:
+        trail.append((SECTION_TITLES[page.section], None))
+    return trail
+
+
+def _organization(public_url: str) -> Dict:
+    return {"@type": "Organization", "@id": WEBSITE + "#organization", "name": "Invaris Labs", "url": WEBSITE,
+            "sameAs": ORG_PROFILES}
+
+
+def _website(public_url: str) -> Dict:
+    return {"@type": "WebSite", "@id": public_url + "/docs#website", "url": public_url + "/docs", "name": SITE_NAME,
+            "description": "Documentation for AgentSec, open-source security testing for AI agents, and its dashboard.",
+            "inLanguage": "en", "publisher": {"@id": WEBSITE + "#organization"}}
+
+
+def _software(public_url: str) -> Dict:
+    """AgentSec, the engine these docs describe. Only facts the project states: open source (Apache-2.0), free,
+    a Python package on PyPI."""
+    app = {"@type": "SoftwareApplication", "@id": public_url + "/docs#agentsec", "name": "AgentSec",
+           "alternateName": "Invaris AgentSec",
+           "description": ("Open-source security testing for AI agents: adversarial scenarios such as prompt injection, "
+                           "tool misuse, data leaks and memory poisoning, checked against a policy you write."),
+           "applicationCategory": "DeveloperApplication", "applicationSubCategory": "Security testing",
+           "operatingSystem": "Any (Python 3.9 or newer)", "url": public_url + "/docs",
+           "downloadUrl": ENGINE_PACKAGE, "license": "https://www.apache.org/licenses/LICENSE-2.0",
+           "isAccessibleForFree": True, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+           "sameAs": [ENGINE_REPO, ENGINE_PACKAGE], "publisher": {"@id": WEBSITE + "#organization"}}
+    version = _engine_version()
+    if version:
+        app["softwareVersion"] = version
+    return app
+
+
+def _engine_version() -> str:
+    try:
+        from agentsec import __version__ as engine_version
+    except Exception:  # noqa: BLE001 - structured data is optional; never let it break a page
+        return ""
+    return str(engine_version)
+
+
+def structured_data(site: Site, page: Page, public_url: str) -> Dict:
+    """JSON-LD for a page: the organization and docs site everywhere, the AgentSec application on the docs home,
+    and a TechArticle with its breadcrumb trail on every other page."""
+    graph: List[Dict] = [_organization(public_url), _website(public_url)]
+    url = public_url + page.url
+    if not page.slug:
+        graph.append(_software(public_url))
+        graph.append({"@type": "WebPage", "@id": url + "#webpage", "url": url, "name": page.social_title,
+                      "description": page.meta_description, "isPartOf": {"@id": public_url + "/docs#website"},
+                      "about": {"@id": public_url + "/docs#agentsec"}, "inLanguage": "en"})
+        return {"@context": "https://schema.org", "@graph": graph}
+    trail = [(name, href) for name, href in _crumbs(site, page) if href] + [(page.title, page.url)]
+    graph.append({"@type": "BreadcrumbList", "@id": url + "#breadcrumb", "itemListElement": [
+        {"@type": "ListItem", "position": i, "name": name, "item": public_url + href}
+        for i, (name, href) in enumerate(trail, 1)]})
+    graph.append({"@type": "TechArticle", "@id": url + "#article", "headline": page.social_title[:110],
+                  "description": page.meta_description, "url": url, "mainEntityOfPage": url, "inLanguage": "en",
+                  "articleSection": SECTION_TITLES[page.section], "image": public_url + SOCIAL_CARD,
+                  "isPartOf": {"@id": public_url + "/docs#website"}, "breadcrumb": {"@id": url + "#breadcrumb"},
+                  "author": {"@id": WEBSITE + "#organization"}, "publisher": {"@id": WEBSITE + "#organization"},
+                  "about": {"@type": "SoftwareApplication", "@id": public_url + "/docs#agentsec", "name": "AgentSec"}})
+    return {"@context": "https://schema.org", "@graph": graph}
+
+
 def render_page(site: Site, page: Page, public_url: str) -> str:
-    crumbs = '<nav class="dx-crumbs" aria-label="Breadcrumb"><a href="/docs">Docs</a><span aria-hidden="true">/</span>' \
-             '<span>%s</span></nav>' % E(SECTION_TITLES[page.section])
+    links = []
+    for name, href in _crumbs(site, page):
+        links.append('<a href="%s">%s</a>' % (E(href), E(name)) if href else "<span>%s</span>" % E(name))
+    crumbs = '<nav class="dx-crumbs" aria-label="Breadcrumb">%s</nav>' % '<span aria-hidden="true">/</span>'.join(links)
     body = ('<article class="dx-article">%s<h1>%s</h1><p class="dx-lead">%s</p><div class="dx-prose">%s</div>'
             '<footer class="dx-page-foot"><a class="ext" href="%s" rel="noopener noreferrer">Edit this page on GitHub</a>'
             '</footer>%s</article>') % (
         crumbs, E(page.title), E(page.description), page.html, E(EDIT_BASE + page.path), _pager(site, page))
-    return page_shell(site, title=page.title if page.slug else "AgentSec documentation", description=page.description,
-                      canonical=public_url + page.url, body=body, current=page, toc=_toc(page))
+    return page_shell(site, title=page.head_title, description=page.meta_description,
+                      canonical=public_url + page.url, public_url=public_url, body=body, current=page, toc=_toc(page),
+                      social_title=page.social_title, og_type="website" if not page.slug else "article",
+                      structured=structured_data(site, page, public_url))
 
 
 def render_search(site: Site, query: str, public_url: str) -> str:
@@ -370,16 +509,16 @@ def render_search(site: Site, query: str, public_url: str) -> str:
             for r in results)
     body = ('<article class="dx-article"><h1>Search</h1><p class="dx-lead">%s</p><div class="dx-prose">%s</div>'
             '</article>') % ("Results for “%s”" % E(query) if query.strip() else "Search the documentation", inner)
-    return page_shell(site, title="Search", description="Search the AgentSec documentation.",
-                      canonical=public_url + "/docs/search", body=body, robots="noindex,follow")
+    return page_shell(site, title="Search" + TITLE_SUFFIX, description="Search the AgentSec documentation.",
+                      canonical=None, public_url=public_url, body=body, robots="noindex,follow", og_type="website")
 
 
 def render_not_found(site: Site, public_url: str) -> str:
     body = ('<article class="dx-article"><h1>Page not found</h1><p class="dx-lead">There is no documentation page at '
             'this address. It may have moved.</p><div class="dx-prose"><p>Search above, or start from the '
             '<a href="/docs">documentation home</a>.</p></div></article>')
-    return page_shell(site, title="Page not found", description="This documentation page does not exist.",
-                      canonical=public_url + "/docs", body=body, robots="noindex,follow")
+    return page_shell(site, title="Page not found" + TITLE_SUFFIX, description="This documentation page does not exist.",
+                      canonical=None, public_url=public_url, body=body, robots="noindex,follow", og_type="website")
 
 
 def sitemap(site: Site, public_url: str) -> str:
@@ -388,10 +527,24 @@ def sitemap(site: Site, public_url: str) -> str:
            '</urlset>\n' % urls
 
 
+def robots_txt(public_url: str) -> str:
+    """robots.txt for the whole site. The docs are open to crawlers; the signed-in API, sign-in flow, health check
+    and the docs' own search results and search index are not (they hold no content of their own)."""
+    return ("User-agent: *\n"
+            "Allow: /\n"
+            "Disallow: /api/\n"
+            "Disallow: /auth/\n"
+            "Disallow: /healthz\n"
+            "Disallow: /docs/search\n"
+            "Disallow: /docs/search-index.json\n"
+            "\n"
+            "Sitemap: %s/docs/sitemap.xml\n" % public_url)
+
+
 def search_index_json(site: Site) -> str:
     return json.dumps({"version": __version__, "entries": site.search_index()}, ensure_ascii=False,
                       separators=(",", ":"))
 
 
 __all__ = ["DocsError", "Page", "SECTIONS", "Site", "get_site", "load_site", "render_not_found", "render_page",
-           "render_search", "search", "search_index_json", "sitemap"]
+           "render_search", "robots_txt", "search", "search_index_json", "sitemap", "structured_data"]
