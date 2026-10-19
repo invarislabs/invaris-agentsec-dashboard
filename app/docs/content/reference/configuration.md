@@ -2,6 +2,7 @@
 title: Configuration and environment variables
 nav_title: Configuration
 description: Every environment variable of the AgentSec dashboard (database, secrets, OAuth, cookies, plan limits) and of the AgentSec CLI, with defaults and production checks.
+seo_description: Every environment variable of the AgentSec dashboard (database, secrets, OAuth, cookies, plan limits) and the AgentSec CLI, with defaults and production checks.
 section: reference
 order: 5
 ---

@@ -2,6 +2,7 @@
 title: Dashboard HTTP API
 nav_title: Dashboard API
 description: Every endpoint of the hosted AgentSec dashboard - the token-authenticated upload endpoint, the session API used by the web page, authentication, request and response formats, and error responses.
+seo_description: Every endpoint of the hosted AgentSec dashboard: the token-authenticated upload endpoint, the session API, authentication, request and response formats, errors.
 section: reference
 order: 4
 ---
@@ -180,7 +181,8 @@ All token endpoints are owner only. At the limit: `403 the Free plan allows 10 t
 | `GET /docs`, `GET /docs/<page>` | This documentation (public, server-rendered) |
 | `GET /docs/search?q=` | Search results page |
 | `GET /docs/search-index.json` | The search index used by the docs' instant search |
-| `GET /docs/sitemap.xml` | Sitemap of every documentation page |
+| `GET /docs/sitemap.xml`, `GET /sitemap.xml` | Sitemap of every documentation page (the same file at both addresses) |
+| `GET /robots.txt` | Crawler rules: the docs are open; `/api/`, `/auth/`, `/healthz` and the docs search are not |
 
 ## Example: list runs from a script
 

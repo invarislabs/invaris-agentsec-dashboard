@@ -2,6 +2,8 @@
 title: Policy reference (agentsec.yaml)
 nav_title: Policy reference
 description: Every key of the AgentSec policy file - agent, allowed_tools, forbidden_actions, tool_effects, agent_roles, secrets, limits, spend_limits, address_allowlist, tests, attack_packs and judge - with defaults and validation rules.
+seo_title: agentsec.yaml Policy Reference: Tools, Secrets and Limits
+seo_description: Every key of the AgentSec policy file: agent, allowed and forbidden tools, tool_effects, agent_roles, secrets, limits, spend limits, tests, packs and judge.
 section: reference
 order: 2
 ---

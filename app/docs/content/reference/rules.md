@@ -2,6 +2,7 @@
 title: Finding rules
 nav_title: Rules reference
 description: Every AgentSec finding rule id - what it detects, its severity, which evaluator produces it, and its OWASP agentic categories - including MCP scan rules.
+seo_title: AgentSec Finding Rules and OWASP Agentic Categories
 section: reference
 order: 7
 ---
