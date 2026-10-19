@@ -1,6 +1,8 @@
 ---
 title: CI and GitHub Actions
 description: Run AgentSec in CI with the packaged GitHub Action - inputs and outputs, starting your agent, failing on severity, comparing pull requests against a baseline with a PR comment, uploading to the dashboard, and a hand-written workflow.
+seo_title: AI Agent Security Testing in CI with GitHub Actions
+seo_description: Run AgentSec's AI agent security tests in CI with the GitHub Action: fail on severity, compare pull requests with a baseline, comment on PRs, upload results.
 section: testing
 order: 12
 ---
