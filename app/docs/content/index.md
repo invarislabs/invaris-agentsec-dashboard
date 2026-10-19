@@ -1,7 +1,8 @@
 ---
 title: AgentSec documentation
 nav_title: Introduction
-description: Learn how to test AI agents for security failures with AgentSec, read the results in the dashboard, and integrate testing into your CLI, code and CI.
+description: AgentSec is open-source AI agent security testing: red-team your agent for prompt injection, tool misuse, data leaks and memory poisoning from the CLI or CI.
+seo_title: AgentSec Docs: AI Agent Security Testing and Red Teaming
 section: start
 order: 1
 ---
@@ -24,16 +25,32 @@ broke, the trace events that prove it, and a suggested fix. There is no opaque r
 AI agents read untrusted text (emails, web pages, retrieved documents, tool results) and then act with real
 tools. That combination creates failures that ordinary unit tests do not catch:
 
-- **Prompt injection**: instructions hidden in a message, document, email or web page take over the agent.
-- **Tool misuse**: the agent calls a tool it should never call, or calls an allowed tool with dangerous arguments.
-- **Data leaks**: secrets, credentials or restricted documents end up in the agent's reply or in a tool call.
-- **Memory poisoning**: a planted instruction survives into a later conversation, or one user's data leaks to another.
-- **Runaway behavior**: endless retry loops and unbounded tool use that burn time and money.
+- **Prompt injection**: instructions hidden in a message, document, email or web page take over the agent
+  ([direct](/docs/reference/attack-catalog#prompt-injection) and
+  [indirect](/docs/reference/attack-catalog#indirect-prompt-injection) scenarios).
+- **Tool misuse**: the agent calls a tool it should never call, or calls an allowed tool with dangerous arguments
+  ([unauthorized tool use](/docs/reference/attack-catalog#unauthorized-tool-use)).
+- **Data leaks**: secrets, credentials or restricted documents end up in the agent's reply or in a tool call
+  ([secret extraction](/docs/reference/attack-catalog#secret-extraction)).
+- **Memory poisoning**: a planted instruction survives into a later conversation, or one user's data leaks to another
+  ([memory poisoning](/docs/reference/attack-catalog#memory-poisoning)).
+- **Runaway behavior**: endless retry loops and unbounded tool use that burn time and money
+  ([loop and budget limits](/docs/reference/attack-catalog#loop-and-budget-limits)).
 - **Authority problems**: actions the current task never authorized, cross-account actions, and multi-agent
-  delegation that escalates privileges.
+  delegation that escalates privileges ([multi-agent testing](/docs/testing/multi-agent)).
 
 AgentSec makes these failures reproducible (every run is seeded), visible (full traces) and checkable in CI
-(exit codes, SARIF, pull-request comparisons).
+(exit codes, SARIF, pull-request comparisons). Findings are mapped to the
+[OWASP Top 10 for Agentic Applications](/docs/results/findings-and-severity#owasp-categories) (ASI01 to ASI10), and
+`agentsec mcp scan` checks MCP servers for tool poisoning and rug pulls ([MCP security testing](/docs/testing/mcp)).
+
+### Automated red teaming, not a replacement for a penetration test
+
+AgentSec automates the repeatable part of AI agent red teaming: a fixed, seeded set of attack scenarios (plus any
+[attack packs](/docs/testing/attack-packs) you write), checked by deterministic rules, that you can rerun on every
+change. It finds the failures its scenarios and rules describe; a clean run means those scenarios did not succeed,
+not that the agent is secure against everything. Manual red teaming and penetration testing still find what no
+fixed suite covers. See [Verdicts](/docs/results/verdicts) for exactly what a passing scenario proves.
 
 ## The pieces
 
@@ -56,6 +73,8 @@ How a run flows: AgentSec attacks your agent as your policy describes, evaluates
 - [How AgentSec works](/docs/concepts): Policies, scenarios, traces, findings and verdicts, explained in plain language.
 - [Choose a testing method](/docs/testing/overview): CLI, Python, pytest, frameworks, MCP, email and browser agents, CI.
 - [Understand your results](/docs/results/verdicts): What passed, findings, error, not observable and inconclusive mean, and what to do next.
+- [Attack catalog](/docs/reference/attack-catalog): Every built-in attack scenario, from prompt injection to memory poisoning.
+- [MCP security testing](/docs/testing/mcp): Scan MCP servers for tool poisoning, and test agents that use MCP.
 - [CLI reference](/docs/reference/cli): Every `agentsec` command and option.
 - [Developer guide](/docs/developers/architecture): How the engine and this dashboard fit together, and how to extend them.
 :::
