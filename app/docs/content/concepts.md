@@ -1,11 +1,16 @@
 ---
 title: How AgentSec works
 description: The core ideas behind AgentSec in plain language - policies, attack categories and scenarios, vectors, simulated tools, traces, evaluators, findings, severities and verdicts.
+seo_title: How AgentSec Works: AI Agent Security Testing Concepts
+seo_description: The ideas behind AgentSec's AI agent security tests: policies, attack scenarios, vectors, simulated tools, traces, evaluators, findings, severity and verdicts.
 section: start
 order: 3
 ---
 
-This page explains the handful of ideas you need to read any AgentSec result. Every term is also in the
+AgentSec's AI agent security testing is built from a few parts: a policy says what your agent may do, attack
+scenarios try to make it do something else, and evaluators check the recorded trace of what it actually did. This
+page explains the handful of ideas you need to read any AgentSec result. If you have not run AgentSec yet, the
+[Quickstart](/docs/quickstart) shows them in action in about ten minutes. Every term is also in the
 [Glossary](/docs/reference/glossary).
 
 ## The policy: what your agent may do
