@@ -2,6 +2,7 @@
 title: Extending AgentSec and the dashboard
 nav_title: Extending
 description: How to add adapters, scenarios, categories, evaluators, MCP checks and schema changes to the AgentSec engine, and API endpoints, views and plan limits to the dashboard.
+seo_description: Add adapters, scenarios, categories, evaluators, MCP checks and schema changes to the AgentSec engine, and endpoints, views and plan limits to the dashboard.
 section: developers
 order: 5
 ---

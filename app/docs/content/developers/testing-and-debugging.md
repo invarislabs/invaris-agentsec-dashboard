@@ -1,6 +1,7 @@
 ---
 title: Testing and debugging
 description: Run the test suites of the AgentSec dashboard and engine, what the tests cover, and how to debug failing scenarios, unexpected findings, uploads and the dashboard itself.
+seo_description: Run the AgentSec dashboard and engine test suites, see what they cover, and debug failing scenarios, unexpected findings, uploads and the dashboard itself.
 section: developers
 order: 6
 ---

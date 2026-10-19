@@ -1,6 +1,8 @@
 ---
 title: Architecture
 description: How the AgentSec engine, CLI, local dashboard, hosted dashboard backend, database, report ingestion and documentation fit together, with the repository layout of both projects.
+seo_title: AgentSec Architecture: Engine, CLI and Dashboard
+seo_description: How the AgentSec engine, CLI, local dashboard, hosted dashboard, database, report ingestion and documentation fit together, with both repositories' layouts.
 section: developers
 order: 1
 ---

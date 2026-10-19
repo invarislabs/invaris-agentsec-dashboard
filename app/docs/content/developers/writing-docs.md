@@ -1,6 +1,7 @@
 ---
 title: Writing documentation
 description: How the /docs section of the AgentSec dashboard works and how to add or update a page - files, front matter, supported Markdown, callouts, badges, code blocks, search, and the checks that keep docs accurate.
+seo_description: How the AgentSec /docs site works and how to add or update a page: files, front matter, SEO metadata, Markdown, callouts, code blocks, search and checks.
 section: developers
 order: 9
 ---
@@ -27,7 +28,7 @@ the same way.
 | `app/docs/images/*.webp` | Screenshots, a light and a dark file per picture (`<name>-light.webp`, `<name>-dark.webp`) |
 | `app/docs/diagrams/*.svg` | Diagrams, inlined into the page and coloured by the theme |
 | `scripts/docs_screenshots.py`, `scripts/docs_diagrams.py` | Regenerate the screenshots and the diagrams (not shipped in the image) |
-| `app/docs/__init__.py` | Routes: `/docs`, `/docs/<page>`, `/docs/search`, `/docs/search-index.json`, `/docs/sitemap.xml` |
+| `app/docs/__init__.py` | Routes: `/docs`, `/docs/<page>`, `/docs/search`, `/docs/search-index.json`, `/docs/sitemap.xml`, and `/robots.txt` and `/sitemap.xml` at the site root |
 | `app/static/docs.css`, `docs.js`, `theme.js` | Styles (built on the dashboard's `app.css` tokens), instant search, copy buttons, table of contents, theme |
 | `tests/test_docs.py` | Checks that keep the docs correct |
 
@@ -47,16 +48,36 @@ order: 2
 
 | Key | Required | Meaning |
 |---|---|---|
-| `title` | yes | The page heading and `<title>` |
-| `description` | yes | Shown under the title, used as the meta description and in link previews |
+| `title` | yes | The page heading (its only `h1`); the `<title>` is this followed by the site name, "AgentSec Docs", unless `seo_title` is set |
+| `description` | yes | Shown under the title, and used as the meta description and in link previews unless `seo_description` is set |
 | `section` | yes | Sidebar group: `start`, `guide`, `results`, `testing`, `developers` or `reference` |
 | `order` | no | Position within the group (default 100) |
 | `nav_title` | no | A shorter sidebar label |
+| `seo_title` | no | The `<title>` and link-preview title, used as written (at most 65 characters, aim for 60) |
+| `seo_description` | no | The meta description and link-preview text when `description` is longer than about 160 characters (at most 165) |
 
 2. Write the content starting at `##` headings (the title is the page's only `h1`).
 3. Run `pytest tests/test_docs.py` and look at it with `uvicorn app.main:create_app --factory --reload`.
 
 The sidebar, previous/next links, search index and sitemap pick the page up automatically.
+
+## Search engines and link previews
+
+Every page is server-rendered HTML, so search engines read it without running JavaScript. The page shell
+(`page_shell` in `app/docs/site.py`) adds, for every page:
+
+- a `<title>` and meta description from the front matter, and a canonical URL built from `PUBLIC_URL`, so set
+  `PUBLIC_URL` to the address people use (see [Configuration](/docs/reference/configuration));
+- Open Graph and Twitter card tags, with `app/static/social-card.png` as the preview image (redraw it with
+  `python scripts/make_social_card.py`, which needs Pillow);
+- JSON-LD structured data: `Organization` and `WebSite` everywhere, `SoftwareApplication` for AgentSec on the docs
+  home, and `TechArticle` plus a `BreadcrumbList` on every other page.
+
+The search results page and the not-found page are `noindex` and have no canonical URL. `/robots.txt` lets
+crawlers into the docs, keeps them out of `/api/`, `/auth/` and the docs search, and names the sitemap.
+
+Write a title and description for the reader first: say what the page lets them do, with the words they would
+search for, once each. `tests/test_docs.py` fails when two pages share a title or description, or one is too long.
 
 ## Supported Markdown
 
@@ -146,6 +167,7 @@ to notice; the text around it still explains everything, for readers who cannot 
 The implementation is the source of truth. `tests/test_docs.py` fails when:
 
 - a page does not parse, lacks front matter, or links to a page or anchor that does not exist;
+- two pages share a `<title>` or meta description, a title is over 65 characters, or a description over 165;
 - an `agentsec` command or option from the installed engine's CLI parser is missing from the [CLI reference](/docs/reference/cli);
 - a key of the engine's policy schema (`agentsec schema policy`) is missing from the [Policy reference](/docs/reference/policy);
 - an API route of the dashboard is missing from the [Dashboard API](/docs/reference/api) page;

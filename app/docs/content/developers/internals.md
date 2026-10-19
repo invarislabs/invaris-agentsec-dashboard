@@ -2,6 +2,8 @@
 title: How evaluation works internally
 nav_title: Evaluation internals
 description: Inside AgentSec - how a scenario runs, how tools are simulated and limits enforced, how evaluators produce findings, how verdict precedence, exposure tracking and attack-goal evaluation work, and how comparison decides what is fixed.
+seo_title: How AgentSec Evaluates AI Agents Internally
+seo_description: Inside AgentSec: how scenarios run, tools are simulated and limits enforced, how evaluators find violations, and how verdicts and comparisons work.
 section: developers
 order: 4
 ---
