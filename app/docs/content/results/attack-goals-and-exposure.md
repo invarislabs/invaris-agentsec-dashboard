@@ -1,6 +1,7 @@
 ---
 title: Attack goals and exposure tracking
 description: How AgentSec decides whether an attack was actually delivered to the agent (exposure and delivery), whether it achieved the attacker's goal, and how mid-task injections are timed.
+seo_description: How AgentSec decides whether an attack actually reached the agent, whether it achieved the attacker's goal, and how mid-task prompt injections are timed.
 section: results
 order: 3
 ---

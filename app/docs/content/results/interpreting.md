@@ -2,6 +2,8 @@
 title: "Reading results: worked examples"
 nav_title: Worked examples
 description: Practical examples of AgentSec results - critical injections, secret leaks, runaway loops, errored runs, inconclusive and not-observable scenarios, suspicious clean runs - and what to do next for each.
+seo_title: Reading AgentSec Results: Worked Examples
+seo_description: Worked examples of AgentSec results: critical injections, secret leaks, runaway loops, errored, inconclusive and not-observable scenarios, and clean runs.
 section: results
 order: 4
 ---

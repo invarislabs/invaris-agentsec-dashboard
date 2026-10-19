@@ -2,6 +2,8 @@
 title: Findings, severity and OWASP categories
 nav_title: Findings and severity
 description: The anatomy of an AgentSec finding, how severity is decided, deterministic versus model-assisted findings, and how findings map to the OWASP Top 10 for Agentic Applications.
+seo_title: Findings, Severity and OWASP Agentic AI Mapping
+seo_description: How AgentSec findings are built, how severity is set, deterministic vs model-assisted findings, and the mapping to the OWASP Top 10 for Agentic Applications.
 section: results
 order: 2
 ---
