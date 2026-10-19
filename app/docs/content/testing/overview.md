@@ -2,11 +2,15 @@
 title: Choosing a testing method
 nav_title: Choose a method
 description: Every way to test an AI agent with AgentSec - CLI, Python API, pytest, frameworks, MCP, email and browser agents, custom attack packs, CI, SARIF and the dashboard - and when to use each.
+seo_title: How to Security-Test an AI Agent: Choose a Method
+seo_description: Every way to security-test an AI agent with AgentSec: CLI, Python API, pytest, LangChain and other frameworks, MCP, email and browser agents, attack packs, CI.
 section: testing
 order: 1
 ---
 
-All methods run the same scenarios through the same evaluators and produce the same `report.json`. They differ
+AgentSec can security-test an AI agent however it is built: over HTTP, in-process, inside an agent framework,
+through MCP, or as a team of agents. All methods run the same scenarios through the same evaluators and produce
+the same `report.json`. They differ
 in how AgentSec reaches your agent and where the result goes.
 
 ## How AgentSec can reach your agent
