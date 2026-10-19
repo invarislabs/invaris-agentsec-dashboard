@@ -2,6 +2,8 @@
 title: Make your agent testable
 nav_title: Agent HTTP contract
 description: The HTTP contract AgentSec uses to drive an agent - request and reply formats, tool calls, sessions for memory tests, agents that run their own tools, self-description, multi-agent attribution, streaming and authentication - with a working minimal agent.
+seo_title: Make Your AI Agent Testable with AgentSec
+seo_description: The HTTP contract AgentSec uses to drive your agent: request and reply formats, tool calls, memory sessions, self-run tools, multi-agent attribution, streaming.
 section: testing
 order: 3
 ---
