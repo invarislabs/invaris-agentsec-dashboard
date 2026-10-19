@@ -2,11 +2,14 @@
 title: MCP security testing
 nav_title: MCP testing
 description: Scan an MCP server's tool, resource and prompt definitions for poisoning, hidden characters, shadowing and rug pulls with agentsec mcp scan, and test an agent that uses MCP with agentsec test --mcp-listen.
+seo_title: MCP Security Testing: Scan MCP Servers and Test MCP Agents
+seo_description: Scan MCP servers for tool poisoning, hidden characters, tool shadowing and rug pulls with agentsec mcp scan, and test agents that use MCP with --mcp-listen.
 section: testing
 order: 7
 ---
 
-AgentSec covers both sides of the [Model Context Protocol](https://modelcontextprotocol.io):
+AgentSec covers both sides of the [Model Context Protocol](https://modelcontextprotocol.io): an MCP security
+scanner for servers, and an attack host for agents that use MCP.
 
 | You want to test | Use |
 |---|---|
