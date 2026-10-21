@@ -1,0 +1,16 @@
+# Keeps the commit-pinned actions in .github/workflows up to date: one grouped pull request a week, and only for
+# releases at least two weeks old. Python dependencies are ranges in pyproject.toml, tested at both ends by CI
+# (lowest supported and newest), and audited weekly, so they need no Dependabot pull requests.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
