@@ -14,8 +14,28 @@ pytest                                                                   # SQLit
 TEST_DATABASE_URL=postgresql+psycopg://agentsec@localhost/dashboard_test pytest   # Postgres + migration check
 ```
 
-CI (`.github/workflows/ci.yml`) runs both on Python 3.12 against the engine version pinned there
-(`AGENTSEC_REQUIREMENT`).
+CI (`.github/workflows/ci.yml`) runs on every pull request, including pull requests from forks, on every push to
+`main` and weekly. The **All required checks** job fails if any other job fails or is skipped, so it is the one
+check to require before merging.
+
+| Job | What it checks |
+|---|---|
+| Lint | Ruff (bugs and unused code, rules in `pyproject.toml`), JavaScript syntax, shellcheck, actionlint and zizmor on the workflows |
+| Secrets and dependency vulnerabilities | gitleaks over the whole Git history; pip-audit over the dependency set the Docker image installs (not on pushes to `main`, so a new advisory never blocks a deploy) |
+| Tests, Python 3.12, deployed dependencies | Every test on Postgres 16 (none may skip) and on SQLite, with the engine pinned in `AGENTSEC_REQUIREMENT`; branch coverage of `app/` in the job summary, failing below 88% |
+| Tests, Python 3.11, lowest supported dependencies | The same, with every dependency at the lowest version `pyproject.toml` allows |
+| Tests, Python 3.13, newest dependencies | The same, with the newest release of everything, the engine included |
+| Docker image builds and serves | `docker compose config`, the image build, and `scripts/smoke_test_image.sh`: production settings, migrations on start, sign-in, security headers, every sitemap page, canonical URLs and robots.txt |
+
+Failing tests are annotated on the pull request; installed versions, coverage, audit results and the smoke test
+are in each job's summary. To run the lint checks locally:
+
+```bash
+uvx ruff check .
+for f in app/static/*.js; do node --check "$f"; done
+uvx --from actionlint-py actionlint && uvx zizmor .github/workflows
+docker build -t agentsec-dashboard:ci . && scripts/smoke_test_image.sh agentsec-dashboard:ci
+```
 
 | File | Covers |
 |---|---|
@@ -23,8 +43,8 @@ CI (`.github/workflows/ci.yml`) runs both on Python 3.12 against the engine vers
 | `tests/test_auth_and_security.py` | Sign-in, sessions, same-origin writes, CSP and headers, access checks |
 | `tests/test_attack_packs_and_verdicts.py` | Inconclusive handling, attack timelines, verdict changes with real pack reports |
 | `tests/test_engine_parity.py` | The vendored verdict rules match the engine; hosted, local and CLI comparisons agree |
-| `tests/test_migrations.py` | Alembic migrations produce the same schema as the models (with `TEST_DATABASE_URL`) |
-| `tests/test_deploy_config.py` | The Render blueprint is one free service with no secrets, the health check, migrations through the direct URL, the prune workflow and command |
+| `tests/test_migrations.py` | One Alembic head; upgrade and downgrade on SQLite; on Postgres (with `TEST_DATABASE_URL`) the migrations produce the same schema as the models |
+| `tests/test_deploy_config.py` | The Render blueprint is one free service with no secrets, the health check, migrations through the direct URL, the prune workflow and command, one engine release across CI, the Dockerfile and docker compose |
 | `tests/test_docs.py` | Every docs page renders; internal links and anchors resolve; CLI options, API routes, policy keys, env vars and rules are documented; search and SEO metadata |
 
 The fixtures in `tests/fixtures` are real AgentSec output (reference agents, the demo MCP server, and email and browser
