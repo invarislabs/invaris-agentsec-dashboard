@@ -231,7 +231,7 @@ app/
 migrations/       Alembic (uses DATABASE_DIRECT_URL when set, else DATABASE_URL)
 tests/            pytest; Postgres via TEST_DATABASE_URL, otherwise SQLite
 render.yaml       Render Blueprint: one free web service (see "Deploy for free")
-.github/workflows ci.yml (tests on Postgres and SQLite), prune.yml (daily retention clean-up)
+.github/workflows ci.yml (pull request checks, below), prune.yml (daily retention clean-up), cla.yml
 ```
 
 ## Tests
@@ -240,6 +240,14 @@ render.yaml       Render Blueprint: one free web service (see "Deploy for free")
 pytest                                                    # SQLite
 TEST_DATABASE_URL=postgresql+psycopg://agentsec@localhost/dashboard_test pytest   # Postgres, plus the migration check
 ```
+
+Every pull request (forks included) runs `.github/workflows/ci.yml`: lint (Ruff, JavaScript syntax, shellcheck,
+actionlint, zizmor); a gitleaks secret scan of the whole history and pip-audit of the deployed dependency set; the
+tests on Postgres 16 and SQLite on Python 3.12 with the deployed engine (with coverage, at least 88%), on Python
+3.11 with the lowest versions `pyproject.toml` allows and on Python 3.13 with the newest; and a build of the Docker
+image, started with production settings and checked by `scripts/smoke_test_image.sh` (health check, sign-in, every
+docs page in the sitemap, canonical URLs, robots.txt). The **All required checks** job passes only when all of
+them do; make it the required status check for `main`. The same checks run weekly against new dependency releases.
 
 The fixtures in `tests/fixtures` are real AgentSec output: the vulnerable and `--safe` reference agent, and the
 poisoned demo MCP server (AgentSec 0.7 format, kept to check older reports still work), and AgentSec 0.8.0 reports
@@ -262,7 +270,7 @@ this repository.
 
 ## Contributing
 
-Issues and pull requests are welcome. Run the tests (above) before opening a pull request. Report security
+Issues and pull requests are welcome. Run the tests (above) before opening a pull request; CI runs the rest. Report security
 problems privately as described in the engine's
 [SECURITY.md](https://github.com/invarislabs/invaris-agentsec/blob/main/SECURITY.md), not in a public issue.
 
