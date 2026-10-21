@@ -15,6 +15,10 @@ dependencies = [
     # agentsec.dashboard and agentsec.verdicts ship from 0.9.0.
     "invaris-agentsec>=0.9.0",
     "fastapi>=0.115",
+    # Imported directly (SessionMiddleware). Before 1.0 it re-sent the session cookie on every response,
+    # including the publicly cacheable /docs pages (tests/test_docs.py checks it never does); 1.3.1 has
+    # the fixes for the advisories against earlier 1.x releases.
+    "starlette>=1.3.1",
     "uvicorn[standard]>=0.30",
     "sqlalchemy>=2.0",
     "alembic>=1.13",
@@ -30,7 +34,7 @@ Issues = "https://github.com/invarislabs/invaris-agentsec-dashboard/issues"
 Engine = "https://github.com/invarislabs/invaris-agentsec"
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=9.0.3"]
 
 [tool.setuptools.packages.find]
 include = ["app*"]
@@ -38,6 +42,21 @@ include = ["app*"]
 [tool.setuptools.package-data]
 app = ["static/*.html", "static/*.js", "static/*.css", "static/*.svg", "static/*.png", "static/fonts/*",
        "docs/content/**/*.md", "docs/images/*.webp", "docs/diagrams/*.svg"]
+
+[tool.ruff]
+target-version = "py311"
+extend-exclude = ["build"]
+
+[tool.ruff.lint]
+# Bugs, not style: syntax errors, undefined names, unused imports and variables, likely mistakes (bugbear).
+# The code is not run through a formatter, so formatting and line length are left alone.
+select = ["E4", "E7", "E9", "F", "B", "PLE"]
+ignore = [
+    "B008",   # FastAPI's Depends() in argument defaults is the framework's documented pattern
+    "B904",   # `raise HTTPException(...)` inside `except` deliberately hides the internal cause
+    "B905",   # zip() over equal-length sequences
+    "E741",   # short names such as `l` in parsing loops
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
