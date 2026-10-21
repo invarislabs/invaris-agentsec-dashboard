@@ -18,7 +18,7 @@ def configure(tmp_path, **extra):
     from app.config import get_settings
     url = os.environ.get("TEST_DATABASE_URL") or "sqlite:///%s" % (tmp_path / "test.db")
     env = {"AGENTSEC_ENV": "development", "AGENTSEC_DEV_LOGIN": "1", "DATABASE_URL": url,
-           "PUBLIC_URL": ORIGIN, "SECRET_KEY": "test-secret-key-0123456789-0123456789",
+           "PUBLIC_URL": ORIGIN, "SECRET_KEY": "test-secret-key-0123456789-0123456789",  # gitleaks:allow (test only)
            "GITHUB_CLIENT_ID": "", "GITHUB_CLIENT_SECRET": ""}
     env.update({k: str(v) for k, v in extra.items()})
     for k in [k for k in os.environ if k.startswith("FREE_") or k in ("SECURE_COOKIES", "SESSION_DAYS")]:

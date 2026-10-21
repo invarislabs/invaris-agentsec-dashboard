@@ -1,0 +1,5 @@
+# Findings that gitleaks (run by .github/workflows/ci.yml) reports and that are not secrets. One fingerprint per line,
+# as gitleaks prints it. New occurrences in the working tree are better marked inline with `gitleaks:allow`.
+#
+# The test-only SECRET_KEY in tests/conftest.py, as first committed (now marked inline).
+75ffeaf46f2b5b4d14776981095d7502dd536067:tests/conftest.py:generic-api-key:21
