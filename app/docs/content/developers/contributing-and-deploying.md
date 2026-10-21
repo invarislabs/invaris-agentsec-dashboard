@@ -19,7 +19,9 @@ A typical change:
 1. Create a branch from `main`.
 2. Make the change with tests (and docs, under `app/docs/content/`, if behaviour or UI changed).
 3. Run the tests: `pytest` (and with `TEST_DATABASE_URL` for database changes).
-4. Open a pull request. CI runs the tests on Postgres and SQLite.
+4. Open a pull request. CI lints, scans for secrets and vulnerable dependencies, runs the tests on Postgres and
+   SQLite on Python 3.11 to 3.13, and builds and smoke-tests the Docker image; see
+   [Testing and debugging](/docs/developers/testing-and-debugging#dashboard-tests).
 
 **CLA.** On your first pull request, the CLA Assistant bot asks you to confirm the
 [Contributor License Agreement](https://github.com/invarislabs/invaris-agentsec-dashboard/blob/main/CLA.md) by replying
