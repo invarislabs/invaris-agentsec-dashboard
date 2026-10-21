@@ -92,3 +92,23 @@ def test_maintenance_prune_command_removes_expired_runs(client, project):
         assert db.query(Report).count() == 1
     finally:
         db.close()
+
+
+def test_ci_tests_the_engine_release_that_is_deployed():
+    """CI, the Docker image (what Render runs) and docker compose must use one engine release, inside the range
+    pyproject.toml allows; otherwise CI would pass against an engine the deploy never installs."""
+    import re
+    import tomllib
+    wf = yaml.safe_load((ROOT / ".github" / "workflows" / "ci.yml").read_text())
+    pins = {
+        "ci.yml": wf["env"]["AGENTSEC_REQUIREMENT"],
+        "Dockerfile": re.search(r'^ARG AGENTSEC_REQUIREMENT="([^"]+)"', (ROOT / "Dockerfile").read_text(), re.M).group(1),
+        "docker-compose.yml": re.search(r"AGENTSEC_REQUIREMENT:-([^}]+)\}", (ROOT / "docker-compose.yml").read_text()).group(1),
+    }
+    assert len(set(pins.values())) == 1, pins
+    pin = pins["ci.yml"]
+    assert re.fullmatch(r"invaris-agentsec==\d+\.\d+\.\d+", pin), pin
+    deps = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["dependencies"]
+    [floor] = [d for d in deps if d.startswith("invaris-agentsec>=")]
+    as_tuple = lambda v: tuple(int(x) for x in v.split("."))      # noqa: E731
+    assert as_tuple(floor.split(">=")[1]) <= as_tuple(pin.split("==")[1]), (floor, pin)

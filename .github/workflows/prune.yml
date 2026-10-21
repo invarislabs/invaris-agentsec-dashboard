@@ -25,9 +25,11 @@ jobs:
       - name: Skip when PRUNE_DATABASE_URL is not configured
         if: env.DATABASE_URL == ''
         run: echo "PRUNE_DATABASE_URL is not set; nothing to prune."
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: env.DATABASE_URL != ''
-      - uses: actions/setup-python@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         if: env.DATABASE_URL != ''
         with:
           python-version: "3.12"

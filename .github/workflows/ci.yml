@@ -1,13 +1,128 @@
+# Pull request and main-branch checks. Make "All required checks" the one required status check in the branch
+# protection rule for main: it fails whenever any job below fails, is cancelled or is skipped, so no check can be
+# skipped silently. Render deploys main only after every check on the commit passes (render.yaml).
+#
+# Runs on pull requests from forks too. They get the read-only GITHUB_TOKEN and no repository secrets; no job here
+# needs a secret, and none checks out or runs pull request code with write access.
 name: ci
 on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "23 4 * * 1"        # Mondays 04:23 UTC: new dependency releases and new advisories, with no code change
+  workflow_dispatch:
+
 permissions:
   contents: read
+
+concurrency:
+  # One run per pull request (a new push cancels the old run); every commit on main is checked to completion.
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # The engine release this dashboard is tested and deployed with. Raise it together with the Dockerfile,
+  # docker-compose.yml and pyproject.toml (tests/test_deploy_config.py checks they agree).
+  AGENTSEC_REQUIREMENT: invaris-agentsec==0.9.0
+  PYTHONUNBUFFERED: "1"
+
 jobs:
-  test:
+  lint:
+    name: Lint (Python, JavaScript, shell, workflows)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          python-version: "3.12"
+      - name: Ruff (bugs and unused code; rules in pyproject.toml)
+        run: uvx ruff@0.16.10 check --output-format=github .
+      - name: JavaScript syntax (app/static, no build step)
+        run: for f in app/static/*.js; do node --check "$f"; done
+      - name: Shell scripts (shellcheck)
+        run: shellcheck scripts/*.sh
+      - name: Workflow syntax (actionlint)
+        run: uvx --from actionlint-py==1.7.12.25 actionlint -color
+      - name: Workflow security (zizmor)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: uvx zizmor@1.30.1 --format=github .github/workflows
+
+  security:
+    name: Secrets and dependency vulnerabilities
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0              # the whole history: a secret removed in a later commit is still public
+          persist-credentials: false
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tgz" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/gitleaks.tgz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/gitleaks.tgz" -C "$RUNNER_TEMP" gitleaks
+      - name: Secret scan (gitleaks, every commit)
+        run: |
+          if ! "$RUNNER_TEMP/gitleaks" git --no-banner --redact --verbose .; then
+            echo "::error title=Possible secret committed::gitleaks found a credential (redacted above, with file, line and commit). Revoke it first; removing it in a later commit does not unpublish it. If it is not a secret, add gitleaks:allow on that line or its fingerprint to .gitleaksignore."
+            exit 1
+          fi
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        if: github.event_name != 'push'
+        with:
+          python-version: "3.12"
+          activate-environment: true
+      - name: Known vulnerabilities in the deployed dependency set (pip-audit)
+        # Not on pushes to main: a newly published advisory must not block the deploy of an unrelated commit. Pull
+        # requests and the weekly run report it.
+        if: github.event_name != 'push'
+        run: |
+          uv pip install "$AGENTSEC_REQUIREMENT" .          # what the Docker image installs
+          uv pip freeze | grep -v '^invaris-agentsec-dashboard' > "$RUNNER_TEMP/requirements.txt"
+          status=0
+          uvx pip-audit@2.10.1 -r "$RUNNER_TEMP/requirements.txt" --no-deps --disable-pip --progress-spinner off \
+            --desc on --format markdown --output "$RUNNER_TEMP/audit.md" || status=$?
+          [ -s "$RUNNER_TEMP/audit.md" ] || echo "No known vulnerabilities found." > "$RUNNER_TEMP/audit.md"
+          { echo "### Dependency vulnerabilities (pip-audit)"; cat "$RUNNER_TEMP/audit.md"; } >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/audit.md"
+          if [ "$status" != 0 ]; then
+            echo "::error title=Vulnerable dependency::pip-audit found known vulnerabilities (table above and in the job summary). Raise the affected floor in pyproject.toml, or the pin in AGENTSEC_REQUIREMENT."
+          fi
+          exit "$status"
+
+  test:
+    name: Tests, ${{ matrix.name }}
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Python 3.12, deployed dependencies
+            python: "3.12"
+            engine: pinned            # AGENTSEC_REQUIREMENT, as in the Docker image
+            resolution: highest
+            coverage: true
+          - name: Python 3.11, lowest supported dependencies
+            python: "3.11"            # requires-python
+            engine: range             # the lowest invaris-agentsec pyproject.toml allows
+            resolution: lowest-direct # every floor in pyproject.toml, so the declared ranges stay true
+            coverage: false
+          - name: Python 3.13, newest dependencies
+            python: "3.13"
+            engine: range             # the newest invaris-agentsec release
+            resolution: highest
+            coverage: false
     services:
       postgres:
         image: postgres:16
@@ -19,14 +134,104 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U agentsec" --health-interval 2s --health-retries 30
     env:
-      TEST_DATABASE_URL: postgresql+psycopg://agentsec:agentsec@localhost:5432/dashboard_test
-      # The engine release this dashboard is tested against; raise it together with pyproject.toml.
-      AGENTSEC_REQUIREMENT: invaris-agentsec==0.9.0
+      POSTGRES_URL: postgresql+psycopg://agentsec:agentsec@localhost:5432/dashboard_test
+      # Failing tests become annotations on the pull request; deprecation warnings from dependencies do not.
+      PYTEST_ADDOPTS: --exclude-warning-annotations
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version: "3.12"
-      - run: pip install "$AGENTSEC_REQUIREMENT" && pip install -e ".[dev]"
-      - run: pytest
-      - run: TEST_DATABASE_URL= pytest   # SQLite too, as used for quick local runs
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          python-version: ${{ matrix.python }}
+          activate-environment: true
+          cache-suffix: ${{ matrix.python }}-${{ matrix.resolution }}
+      - name: Install
+        id: install
+        env:
+          ENGINE: ${{ matrix.engine }}
+          RESOLUTION: ${{ matrix.resolution }}
+        run: |
+          engine=invaris-agentsec
+          if [ "$ENGINE" = pinned ]; then engine="$AGENTSEC_REQUIREMENT"; fi
+          uv pip install --resolution "$RESOLUTION" "$engine" -e ".[dev]"
+          uv pip install pytest-cov==7.1.0 pytest-github-actions-annotate-failures==0.4.2
+          {
+            echo "### Installed versions"
+            echo "| Package | Version |"; echo "|---|---|"
+            uv pip list --format=freeze | grep -iE '^(invaris-agentsec|fastapi|starlette|sqlalchemy|alembic|psycopg|httpx|uvicorn|pytest)==' \
+              | sed 's/==/ | /; s/^/| /; s/$/ |/'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Tests on Postgres 16
+        env:
+          TEST_DATABASE_URL: ${{ env.POSTGRES_URL }}
+          COVERAGE: ${{ matrix.coverage }}
+        run: |
+          cov=()
+          if [ "$COVERAGE" = true ]; then
+            echo "### Coverage of app/ (Postgres run)" >> "$GITHUB_STEP_SUMMARY"
+            cov=(--cov=app --cov-branch --cov-report=term-missing:skip-covered
+                 "--cov-report=markdown-append:$GITHUB_STEP_SUMMARY" --cov-fail-under=88)
+          fi
+          python -m pytest -ra --junitxml="$RUNNER_TEMP/postgres.xml" "${cov[@]}"
+      - name: Every test ran on Postgres (none skipped)
+        # The migration test and the engine parity tests skip themselves when their prerequisites are missing; on
+        # this run they must not, or a broken database URL or engine install would pass unnoticed.
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          python - "$RUNNER_TEMP/postgres.xml" <<'EOF'
+          import sys, xml.etree.ElementTree as ET
+          skipped = [(c.get("classname"), c.get("name"), c.find("skipped").get("message"))
+                     for c in ET.parse(sys.argv[1]).iter("testcase") if c.find("skipped") is not None]
+          for cls, name, why in skipped:
+              print("::error title=Test skipped on Postgres::%s.%s: %s" % (cls, name, why))
+          sys.exit(1 if skipped else 0)
+          EOF
+      - name: Tests on SQLite (as used for quick local runs)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        env:
+          TEST_DATABASE_URL: ""
+        run: python -m pytest -ra
+
+  docker:
+    name: Docker image builds and serves
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: docker-compose.yml is valid
+        run: docker compose config --quiet
+      - name: Build the image Render deploys
+        run: docker build --build-arg AGENTSEC_REQUIREMENT="$AGENTSEC_REQUIREMENT" -t agentsec-dashboard:ci .
+      - name: Smoke test (production settings, migrations, docs, SEO files)
+        run: |
+          set -o pipefail
+          scripts/smoke_test_image.sh agentsec-dashboard:ci | tee "$RUNNER_TEMP/smoke.txt"
+          { echo "### Docker smoke test"; echo '```'; grep -E '^(ok|FAIL) ' "$RUNNER_TEMP/smoke.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  required:
+    name: All required checks
+    if: always()
+    needs: [lint, security, test, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          needs = json.loads(os.environ["NEEDS"])
+          lines = ["### Required checks", "| Job | Result |", "|---|---|"]
+          lines += ["| %s | %s |" % (job, data["result"]) for job, data in needs.items()]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as fh:
+              fh.write("\n".join(lines) + "\n")
+          bad = {job: data["result"] for job, data in needs.items() if data["result"] != "success"}
+          for job, result in bad.items():
+              print("::error title=Required check not passed::%s: %s" % (job, result))
+          raise SystemExit(1 if bad else 0)
+          EOF
