@@ -4,7 +4,6 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-import pytest
 
 from tests.conftest import ORIGIN, fixture, sign_in
 
