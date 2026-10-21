@@ -1,7 +1,6 @@
 """POST /api/v1/reports: what `agentsec upload` and the GitHub Action call, with a project token."""
 from __future__ import annotations
 
-import gzip
 import json
 import zlib
 
