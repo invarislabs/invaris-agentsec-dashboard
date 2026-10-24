@@ -50,7 +50,7 @@ order: 2
 |---|---|---|
 | `title` | yes | The page heading (its only `h1`); the `<title>` is this followed by the site name, "AgentSec Docs", unless `seo_title` is set |
 | `description` | yes | Shown under the title, and used as the meta description and in link previews unless `seo_description` is set |
-| `section` | yes | Sidebar group: `start`, `guide`, `results`, `testing`, `developers` or `reference` |
+| `section` | yes | Sidebar group: `start`, `guide`, `results`, `testing`, `developers`, `reference` or `demos` |
 | `order` | no | Position within the group (default 100) |
 | `nav_title` | no | A shorter sidebar label |
 | `seo_title` | no | The `<title>` and link-preview title, used as written (at most 65 characters, aim for 60) |
@@ -60,6 +60,12 @@ order: 2
 3. Run `pytest tests/test_docs.py` and look at it with `uvicorn app.main:create_app --factory --reload`.
 
 The sidebar, previous/next links, search index and sitemap pick the page up automatically.
+
+**A new demo video** goes at the top of `app/docs/content/demos/videos.md` (newest first), as its own `##`
+section in the same shape as the others: a `https://youtu.be/` link, its length and month, two or three
+sentences on what it shows, and a chapter table linking each timestamp (`?t=<seconds>`) to the page that
+explains it. Each section gets its own anchor and search entry. The docs pages cannot embed players: their
+Content-Security-Policy allows no third-party frames or scripts.
 
 ## Search engines and link previews
 
@@ -86,7 +92,7 @@ search for, once each. `tests/test_docs.py` fails when two pages share a title o
 - Links must be site paths (`/docs/testing/cli#anchor`), in-page anchors (`#anchor`) or `https://` URLs;
   `http://`, protocol-relative `//host`, relative paths and `javascript:` fail the build. External links get an arrow
   and `rel="noopener noreferrer"`. The tests also only allow external links to the project's GitHub organisation,
-  `genai.owasp.org` and `modelcontextprotocol.io`; add a domain to that list in `tests/test_docs.py` when you need one.
+  `genai.owasp.org`, `modelcontextprotocol.io` and `youtu.be` (demo videos); add a domain to that list in `tests/test_docs.py` when you need one.
 - Lists (`-` or `1.`), nested by indentation; tables (escape a literal pipe inside a cell as `\|`); blockquotes; `---`.
 - Fenced code with a language and an optional title; every block gets a Copy button:
 
