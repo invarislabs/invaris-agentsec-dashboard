@@ -49,6 +49,7 @@ SECTIONS: List[Tuple[str, str]] = [
     ("testing", "Testing guides"),
     ("developers", "Developer guide"),
     ("reference", "Reference"),
+    ("demos", "Demos"),
 ]
 SECTION_TITLES = dict(SECTIONS)
 

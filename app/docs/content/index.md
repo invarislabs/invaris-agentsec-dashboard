@@ -77,6 +77,7 @@ How a run flows: AgentSec attacks your agent as your policy describes, evaluates
 - [MCP security testing](/docs/testing/mcp): Scan MCP servers for tool poisoning, and test agents that use MCP.
 - [CLI reference](/docs/reference/cli): Every `agentsec` command and option.
 - [Developer guide](/docs/developers/architecture): How the engine and this dashboard fit together, and how to extend them.
+- [Demo videos](/docs/demos/videos): Watch AgentSec attack an agent, open a finding and compare baseline with hardened, in two minutes.
 :::
 
 > [!WARNING] Test environments only
