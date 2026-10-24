@@ -96,7 +96,8 @@ def test_internal_links_and_anchors_resolve():
 
 
 def test_external_links_point_at_the_project_or_known_references():
-    allowed = ("https://github.com/invarislabs/", "https://genai.owasp.org/", "https://modelcontextprotocol.io")
+    allowed = ("https://github.com/invarislabs/", "https://genai.owasp.org/", "https://modelcontextprotocol.io",
+               "https://youtu.be/")       # the project's demo videos (/docs/demos/videos)
     for page in SITE.pages:
         for link in page.links:
             if link.startswith("http"):
